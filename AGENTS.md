@@ -1,5 +1,7 @@
 # Skills Repo
 
+<!-- Repo: git clone git@github.com:NeilTheFisher/skills.git → lives at ~/.claude/skills -->
+
 This repo (`NeilTheFisher/skills`) is the single shared skills directory. It is
 the git root that Claude (`~/.claude/skills`), Codex (`~/.codex/skills`), and
 opencode (`~/.config/opencode/skills`) all point at via symlink, so every
