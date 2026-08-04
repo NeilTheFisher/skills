@@ -22,13 +22,14 @@ like an eager but unsandboxed contributor whose work must be verified.
    background command silently kill the launch).
 
 3. **Launch opencode AND open the log in ONE background bash call.** Create
-   the log, open it in the editor, then run opencode into it, chained with
-   `&&` in a single command so the editor is already tailing the file before
-   opencode writes a byte. Do not split this into two tool calls.
+    the log, open it in the editor, then run opencode into it, chained with
+    `&&` in a single command so the editor is already tailing the file before
+    opencode writes a byte. Do not split this into two tool calls.
 
-   ```bash
-   L=<scratchpad>/opencode-<slug>.txt; : > "$L" && { code-insiders -r "$L" || code -r "$L"; } && opencode run "$(cat <scratchpad>/prompt.txt)" >> "$L" 2>&1
-   ```
+    Use `--model` to select a model (e.g., `deepseek/v4-flash-free`):
+    ```bash
+    L=<scratchpad>/opencode-<slug>.txt; : > "$L" && { code-insiders -r "$L" || code -r "$L"; } && opencode run "$(cat <scratchpad>/prompt.txt)" --model deepseek/v4-flash-free >> "$L" 2>&1
+    ```
 
    Use the session scratchpad and the shell tool's background mode so other
    work can continue. Skip the `code-insiders` half if the args said "no
