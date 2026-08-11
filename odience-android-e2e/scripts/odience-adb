@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+device_ip="192.168.0.17"
+odience_package="com.summit.odience.client"
+odience_activity="com.summit.odience.common.OdienceActivity"
+odience_resolved="com.summit.odience.client/com.summit.odience.common.OdienceActivity"
+prodience_package="com.summit.ims.app.messaging"
+prodience_variant_package="com.summit.ims.app.odience"
+
+usage() {
+    echo "Usage: $0 {connect IP:PORT|status|inventory|launch-odience}"
+}
+
+select_device() {
+    mapfile -t matching_devices < <(adb devices | tr -d '\r' | awk -v ip="$device_ip" '$1 ~ "^" ip ":" && $2 == "device" {print $1}')
+    if (( ${#matching_devices[@]} != 1 )); then
+        echo "Expected exactly one online wireless device at $device_ip; found ${#matching_devices[@]}." >&2
+        adb devices -l >&2
+        exit 1
+    fi
+    device_serial="${matching_devices[0]}"
+}
+
+resolve_launcher() {
+    local package="$1"
+    adb -s "$device_serial" shell cmd package resolve-activity --brief \
+        -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -p "$package" \
+        | tr -d '\r' | tail -n 1
+}
+
+inventory_package() {
+    local package="$1"
+    if ! adb -s "$device_serial" shell pm path "$package" >/dev/null 2>&1; then
+        echo "$package: not installed"
+        return
+    fi
+    local launcher
+    launcher="$(resolve_launcher "$package")"
+    local version
+    version="$(adb -s "$device_serial" shell dumpsys package "$package" | tr -d '\r' | awk '/versionName=/ && !found {print $1; found=1}')"
+    echo "$package: installed; $version; launcher=$launcher"
+}
+
+command="${1:-}"
+case "$command" in
+    connect)
+        endpoint="${2:-}"
+        if [[ ! "$endpoint" =~ ^${device_ip//./\.}:[0-9]+$ ]]; then
+            echo "Endpoint must be $device_ip:PORT." >&2
+            exit 1
+        fi
+        adb connect "$endpoint"
+        adb devices -l
+        ;;
+    status)
+        adb devices -l
+        echo "Wireless discovery:"
+        adb mdns services || true
+        ;;
+    inventory)
+        select_device
+        echo "Device: $device_serial $(adb -s "$device_serial" shell getprop ro.product.model | tr -d '\r')"
+        inventory_package "$odience_package"
+        inventory_package "$prodience_package"
+        inventory_package "$prodience_variant_package"
+        ;;
+    launch-odience)
+        select_device
+        if [[ "${ODIENCE_CONFIRMED:-}" != "1" ]]; then
+            echo "Blocked: $odience_package is not yet confirmed as the intended Unity Odience app." >&2
+            echo "Run inventory and obtain user confirmation, then set ODIENCE_CONFIRMED=1." >&2
+            exit 1
+        fi
+        actual_launcher="$(resolve_launcher "$odience_package")"
+        expected_component="$odience_package/$odience_activity"
+        if [[ "$actual_launcher" != "$odience_resolved" ]]; then
+            echo "Blocked: expected $odience_resolved, found $actual_launcher." >&2
+            exit 1
+        fi
+        adb -s "$device_serial" shell am start -W -n "$expected_component"
+        ;;
+    *)
+        usage >&2
+        exit 1
+        ;;
+esac
