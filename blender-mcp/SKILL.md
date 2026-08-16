@@ -39,7 +39,7 @@ isolated and you can watch each step land in the viewport.
 
 `~/.mcporter/mcporter.json` runs the server via
 `uvx --with blender-mcp --python 3.12 python /home/nfisher/.local/lib/blender-mcp-wrapper.py`
-(+ `DISABLE_TELEMETRY=1`).
+(+ `DISABLE_TELEMETRY=1`, `TMPDIR=/mnt/c/Users/neil3/AppData/Local/Temp`).
 
 **Why:** on this WSL box, `connect()` to a *closed* localhost port hangs
 forever instead of returning ECONNREFUSED. Without the wrapper, blender-mcp's
@@ -55,3 +55,24 @@ Keep the wrapper at that path — the mcporter config references it.
 - Telemetry is disabled via env var; consent prompts should be ignored/denied.
 - To update the add-on later: `uvx blender-mcp install-addon`, then disable/re-enable it in Blender prefs.
 - If the add-on version is behind the server, `get_addon_status` reports it.
+
+## Screenshots across WSL ↔ Windows — the /tmp path bridge
+
+`get_viewport_screenshot` fails on this WSL→Windows setup unless the temp path
+is bridged. The MCP server (WSL) generates the save path from
+`tempfile.gettempdir()`, and Windows Blender resolves a leading `/` against its
+**current drive** (which varies by thread: C: in the screenshot path, D: in
+`execute_code`). So `/tmp/...` lands in `C:\tmp` or `D:\tmp`, never WSL `/tmp`,
+and the server reports "Screenshot file was not created".
+
+Fix (already in place, don't undo):
+1. `TMPDIR=/mnt/c/Users/neil3/AppData/Local/Temp` in the mcporter `blender` env →
+   server writes/reads `/mnt/c/Users/neil3/AppData/Local/Temp/blender_screenshot_<pid>.png`.
+2. Windows junctions (created once via `cmd /c mklink /J`, local targets because
+   junctions can't target UNC): `C:\mnt\c → C:\` and `D:\mnt\c → C:\`. Blender
+   resolves `/mnt/c/...` to `<drive>:\mnt\c\...` → junction → `C:\Users\...\Temp`
+   on either drive, which WSL sees at `/mnt/c/Users/...`.
+
+Diagnose: ask Blender `import os; print(os.getcwd(), os.path.abspath('/mnt/c/Users/neil3/AppData/Local/Temp/x'))`
+via `execute_blender_code` (stdout is captured and returned). Verify the file
+lands where expected before blaming the addon.
