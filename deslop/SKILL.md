@@ -45,6 +45,14 @@ Before generating, establish:
 
 See `references/fitting-the-codebase.md` for the full method.
 
+## Non-code text (commit messages, PR descriptions)
+
+The scanner's `--git` flag can flag tells in commit messages, but **do not auto-fix
+commit history**. When `--git` finds issues, report them to the user and let them decide
+whether to amend. The model must also apply these rules to all prose it writes (PR
+descriptions, comments) before committing — no em dashes, no curly apostrophes, no
+emoji, no narrating.
+
 ## Mode 2: Audit (remove slop)
 
 **1. Build, type-check, lint.** This catches hallucinated APIs - the #2 tell. No regex
@@ -59,8 +67,13 @@ python3 scripts/unslop_code_scan.py <path> --json
 ```
 
 Covers Python, JS/TS, Java, Go, Rust, Ruby, PHP, C/C++, C#. Exit code = high-severity count.
-It also flags curly apostrophes and em dashes in source; replace them with ASCII apostrophes
-and hyphens so UI copy and comments match typical codebase text.
+
+Optionally scan recent commit messages (opt-in, flag only — do not amend):
+
+```bash
+python3 scripts/unslop_code_scan.py --git HEAD              # latest commit
+python3 scripts/unslop_code_scan.py --git HEAD~3..HEAD      # last 3 commits
+```
 
 **3. Read the diff** for structural tells: boilerplate (18.6%), over-engineering (7.8%),
 code that ignores the repo (3.5%), mixed skill level (1.9%). Only a human can judge these.

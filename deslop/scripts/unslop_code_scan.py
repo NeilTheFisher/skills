@@ -41,6 +41,8 @@ Usage:
     python3 unslop_code_scan.py <path> --severity high # only the strongest signals
     python3 unslop_code_scan.py <path> --json          # machine-readable (for CI)
     python3 unslop_code_scan.py <path> --max 8         # cap examples shown per rule
+    python3 unslop_code_scan.py --git HEAD              # flag tells in latest commit message
+    python3 unslop_code_scan.py --git HEAD~3..HEAD      # flag tells in last 3 commit messages
 
 A line containing  unslop-ignore  is skipped, for a pattern you are using on purpose.
 Exit code is the number of HIGH-severity findings (0 = none), so CI can gate on it.
@@ -141,6 +143,23 @@ def iter_files(path):
             if os.path.splitext(f)[1].lower() in EXTS:
                 yield os.path.join(root, f)
 
+def scan_lines(lines, rules, label):
+    """Scan a list of (line_number, text) tuples against compiled rules."""
+    findings = []
+    for i, line in lines:
+        if "unslop-ignore" in line.lower():
+            continue
+        for r in rules:
+            for rx in r["rx"]:
+                m = rx.search(line)
+                if m:
+                    findings.append({"rule": r["id"], "label": r["label"], "sev": r["sev"],
+                                     "class": r["class"], "share": r["share"], "fix": r["fix"],
+                                     "file": label, "line": i,
+                                     "match": m.group(0).strip()[:50], "snippet": line.strip()[:160]})
+                    break
+    return findings
+
 def scan(path, min_sev):
     rules = compile_rules(min_sev)
     findings = []
@@ -152,19 +171,22 @@ def scan(path, min_sev):
             continue
         if len(lines) == 1 and len(lines[0]) > 5000:
             continue
-        for i, line in enumerate(lines, 1):
-            if "unslop-ignore" in line.lower():
-                continue
-            for r in rules:
-                for rx in r["rx"]:
-                    m = rx.search(line)
-                    if m:
-                        findings.append({"rule": r["id"], "label": r["label"], "sev": r["sev"],
-                                         "class": r["class"], "share": r["share"], "fix": r["fix"],
-                                         "file": fp, "line": i,
-                                         "match": m.group(0).strip()[:50], "snippet": line.strip()[:160]})
-                        break
+        numbered = [(i, line) for i, line in enumerate(lines, 1)]
+        findings.extend(scan_lines(numbered, rules, fp))
     return findings
+
+def scan_git(rev_range, min_sev):
+    """Scan commit messages from a git rev range."""
+    import subprocess
+    try:
+        out = subprocess.check_output(
+            ["git", "log", "--format=%B", rev_range],
+            text=True, stderr=subprocess.PIPE)
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        print(f"git log failed: {e}", file=sys.stderr); sys.exit(2)
+    rules = compile_rules(min_sev)
+    lines = [(i, line) for i, line in enumerate(out.splitlines(), 1) if line.strip()]
+    return scan_lines(lines, rules, f"git:{rev_range}")
 
 def verdict(by_sev, weighted):
     if by_sev.get("high", 0) >= 3 or weighted >= 15:
@@ -177,34 +199,43 @@ def verdict(by_sev, weighted):
 
 def main():
     ap = argparse.ArgumentParser(description="Scan source code for AI-written-code tells.")
-    ap.add_argument("path")
+    ap.add_argument("path", nargs="?", default=None)
+    ap.add_argument("--git", metavar="REV", help="flag tells in commit messages from git rev range (e.g. HEAD, HEAD~3..HEAD)")
     ap.add_argument("--severity", choices=["high", "medium", "low"], default="low",
                     help="minimum severity to report (default: low = everything)")
     ap.add_argument("--json", action="store_true", help="machine-readable output")
     ap.add_argument("--max", type=int, default=10, help="max examples shown per rule (text mode)")
     args = ap.parse_args()
 
-    if not os.path.exists(args.path):
-        print(f"path not found: {args.path}", file=sys.stderr); sys.exit(2)
+    if not args.path and not args.git:
+        ap.error("provide a path or --git REV")
 
-    findings = scan(args.path, args.severity)
+    if args.git:
+        findings = scan_git(args.git, args.severity)
+        label = f"git:{args.git}"
+        files_scanned = 0
+    else:
+        if not os.path.exists(args.path):
+            print(f"path not found: {args.path}", file=sys.stderr); sys.exit(2)
+        findings = scan(args.path, args.severity)
+        label = args.path
+        files_scanned = sum(1 for _ in iter_files(args.path))
     by_sev, by_class, by_rule = {}, {}, {}
     for f in findings:
         by_sev[f["sev"]] = by_sev.get(f["sev"], 0) + 1
         by_class[f["class"]] = by_class.get(f["class"], 0) + 1
         by_rule.setdefault(f["rule"], []).append(f)
     weighted = sum(W[s] * n for s, n in by_sev.items())
-    files_scanned = sum(1 for _ in iter_files(args.path))
 
     if args.json:
-        print(json.dumps({"path": args.path, "files_scanned": files_scanned, "counts": by_sev,
+        print(json.dumps({"path": label, "files_scanned": files_scanned, "counts": by_sev,
                           "class_counts": by_class, "slop_score": weighted,
                           "verdict": verdict(by_sev, weighted), "findings": findings}, indent=2))
         sys.exit(by_sev.get("high", 0))
 
     sev_order = {"high": 0, "medium": 1, "low": 2}
     rule_ids = sorted(by_rule, key=lambda rid: (sev_order[by_rule[rid][0]["sev"]], -len(by_rule[rid])))
-    print(f"\n  unslop-code scan: {args.path}")
+    print(f"\n  unslop-code scan: {label}")
     print(f"  files scanned: {files_scanned}   findings: {len(findings)}   slop score: {weighted}")
     print(f"  verdict: {verdict(by_sev, weighted)}")
     print(f"  high: {by_sev.get('high',0)}   medium: {by_sev.get('medium',0)}   low: {by_sev.get('low',0)}")
