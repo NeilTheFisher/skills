@@ -13,13 +13,35 @@ usage() {
 }
 
 select_device() {
+    # Preferred path: wireless debugging, where the serial is itself the IP:port.
     mapfile -t matching_devices < <(adb devices | tr -d '\r' | awk -v ip="$device_ip" '$1 ~ "^" ip ":" && $2 == "device" {print $1}')
-    if (( ${#matching_devices[@]} != 1 )); then
-        echo "Expected exactly one online wireless device at $device_ip; found ${#matching_devices[@]}." >&2
-        adb devices -l >&2
-        exit 1
+    if (( ${#matching_devices[@]} == 1 )); then
+        device_serial="${matching_devices[0]}"
+        return
     fi
-    device_serial="${matching_devices[0]}"
+
+    # Fallback: a USB-attached device. Verify identity by reading its wlan IP rather
+    # than trusting the serial, so this cannot silently attach to the wrong handset.
+    mapfile -t usb_devices < <(adb devices | tr -d '\r' | awk '$1 !~ ":" && $2 == "device" {print $1}')
+    mapfile -t usb_matching < <(
+        for serial in "${usb_devices[@]}"; do
+            ip="$(adb -s "$serial" shell 'ip -4 addr show wlan0 2>/dev/null | grep -o "inet [^/]*"' 2>/dev/null \
+                | tr -d '\r' | awk '{print $2}' | head -n 1)"
+            if [[ "$ip" == "$device_ip" ]]; then
+                echo "$serial"
+            fi
+        done
+    )
+    if (( ${#usb_matching[@]} == 1 )); then
+        device_serial="${usb_matching[0]}"
+        echo "Using USB-attached device $device_serial (wlan IP $device_ip)." >&2
+        return
+    fi
+
+    echo "Expected exactly one online device at $device_ip." >&2
+    echo "  wireless matches: ${#matching_devices[@]}; USB matches after IP check: ${#usb_matching[@]}" >&2
+    adb devices -l >&2
+    exit 1
 }
 
 resolve_launcher() {

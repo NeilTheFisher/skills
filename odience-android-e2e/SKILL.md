@@ -5,12 +5,32 @@ description: Connects to the Summit Android test device, safely identifies Odien
 
 # Odience Android E2E
 
-## Temporary emulator notice
+## Device transport
 
-The `Pixel_API_35` AVD currently crashes during QEMU/WHPX boot and becomes ADB
-`offline`. Immediately notify the user that the emulator path is broken and should
-be fixed. Until this notice is removed, default to wireless ADB. Do not spend time
-retrying the emulator unless the user explicitly asks to diagnose it.
+The reserved device is the RMX2202 at wlan IP `192.168.0.17`. It is normally
+attached over **USB**, not wireless debugging — `scripts/odience-adb` prefers a
+wireless `IP:PORT` serial and otherwise falls back to a USB device, verifying
+identity by reading that device's `wlan0` address rather than trusting the
+serial. Both transports work; nothing needs reconfiguring when you switch.
+
+If wireless debugging is wanted, connect first (ports change):
+
+```bash
+scripts/odience-adb connect 192.168.0.17:PORT
+scripts/odience-adb status
+```
+
+If the saved endpoint fails, run `adb mdns services` and select the `_adb-tls-connect`
+entry for `192.168.0.17`. Do not confuse its port with the `_adb-tls-pairing` port.
+If the device is not already paired, ask the user for the pairing endpoint and
+six-digit code, then use `adb pair IP:PAIRING_PORT`.
+
+## Current device state
+
+As of 2026-10-01 the Unity Odience client (`com.summit.odience.client`) is **not
+installed** on the RMX2202; only the native `com.summit.ims.app.odience` is. Run
+`inventory` before assuming either is present. No emulator is configured on this
+machine (no AVDs, no `emulator` binary), so the physical device is the only target.
 
 ## Safety rules
 
@@ -57,20 +77,6 @@ Known distinction:
 If the app calls production while the test data and commits are on staging, stop
 claiming a phone E2E result. Ask for a staging ACS profile or a correctly signed,
 staging-provisioned build.
-
-## Connect
-
-The reserved device IP is `192.168.0.17`. Wireless-debugging ports can change.
-
-```bash
-scripts/odience-adb connect 192.168.0.17:PORT
-scripts/odience-adb status
-```
-
-If the saved endpoint fails, run `adb mdns services` and select the `_adb-tls-connect`
-entry for `192.168.0.17`. Do not confuse its port with the `_adb-tls-pairing` port.
-If the device is not already paired, ask the user for the pairing endpoint and
-six-digit code, then use `adb pair IP:PAIRING_PORT`.
 
 ## Launch and test
 
