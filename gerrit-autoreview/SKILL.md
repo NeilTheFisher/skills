@@ -18,11 +18,11 @@ Continuously watch a Gerrit project for new patchsets and review each one automa
 
    Output lines: `<change> <patchset> <ref> <owner> <subject>`. No output = nothing new.
 
-2. **Review each new patchset** using the gerrit-review skill's workflow: fetch the ref, `git branch -f change-<n>-<ps> FETCH_HEAD` (never checkout in the main repo), add/reuse a sibling worktree, then spawn one review agent per change (in parallel if several) telling it to review the worktree's top commit (`HEAD^..HEAD`) for correctness bugs, following the /code-review skill's approach. Skip changes owned by the user themselves unless asked otherwise.
+2. **Review each new patchset** using the gerrit-review skill's workflow: fetch the ref, `git branch -f change-<n>-<ps> FETCH_HEAD` (never checkout in the main repo), add/reuse a sibling worktree, then spawn one review agent per change (in parallel if several) telling it to review the worktree's top commit (`HEAD^..HEAD`) for correctness bugs, following the /review-changes skill's approach. Skip changes owned by the user themselves unless asked otherwise.
 
 3. **Report** findings to the user per change: change number, subject, owner, and the verified findings (or "clean"). Do NOT post anything to Gerrit; findings stay local unless the user explicitly asks to publish them via `gerrit review`.
 
-4. **Schedule the next cycle** with ScheduleWakeup: delay 300s when changes were found, 600s when quiet, prompt `/gerrit-autoreview`, reason "polling Gerrit for new patchsets". If the user asks to stop, call ScheduleWakeup with `stop: true`.
+4. **Schedule the next cycle**: delay 300s when changes were found, 600s when quiet, prompt `/gerrit-autoreview`, reason "polling Gerrit for new patchsets". If the user asks to stop, drop the scheduled wakeup. Use whatever scheduling primitive the host agent provides — `ScheduleWakeup` in Claude Code, a cron-style or sleep-based loop elsewhere. If none is available, poll in a foreground loop and tell the user the loop cannot survive the session ending.
 
 ## Notes
 

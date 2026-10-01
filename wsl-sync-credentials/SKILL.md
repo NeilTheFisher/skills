@@ -15,7 +15,7 @@ Run in WSL terminal to sync to Windows:
 bash ~/.claude/skills/wsl-sync-credentials/scripts/sync.sh
 ```
 
-On first run, it auto-detects your Windows username and prompts if multiple users exist. The username is then saved to `~/.claude/.wsl-sync-config` for future syncs—no more prompts.
+On first run, it auto-detects your Windows username and prompts if multiple users exist. The username is then saved to `~/.claude/.wsl-sync-config` for future syncs—no more prompts. That file does not exist yet on this machine, so the first run will still prompt.
 
 ## Manual username (skip auto-detect)
 
@@ -33,8 +33,20 @@ Edit `~/.claude/.wsl-sync-config` directly, or pass a new username as the first 
 
 After running, Claude on Windows will have access to your current OAuth tokens:
 
-- Check `C:\Users\{username}\.claude\.credentials.json` exists (8-9 KB)
+- Check `C:\Users\{username}\.claude\.credentials.json` exists
 - Launch Claude on Windows and confirm Atlassian/Notion integrations are active
+
+**Before syncing, diff the top-level keys on both sides.** The sync is a
+one-directional overwrite, and the two files are NOT equivalent:
+
+```bash
+python3 -c "import json;print(sorted(json.load(open('$HOME/.claude/.credentials.json'))))"
+python3 -c "import json;print(sorted(json.load(open('/mnt/c/Users/{username}/.claude/.credentials.json'))))"
+```
+
+Any key on the Windows side but missing on the WSL side (historically `mcpOAuth`,
+which holds the Atlassian/Notion tokens) will be **destroyed** by the copy. Back the
+Windows file up first, or re-auth those integrations afterwards.
 
 ## Troubleshooting
 
@@ -46,10 +58,12 @@ After running, Claude on Windows will have access to your current OAuth tokens:
 - Ensure `/mnt/c/Users/{username}/.claude/` is writable from WSL
 - Try `chmod 777` on the target `.claude` directory from Windows
 
-**Want to copy backup too?**
+**Want to copy a backup too?**
 
-Also copy the backup file to preserve your previous credentials:
+Backup files use a suffix, not the bare `.backup` name. List what exists and copy
+the one you want:
 
 ```bash
-cp ~/.claude/.credentials.json.backup /mnt/c/Users/{username}/.claude/.credentials.json.backup
+ls ~/.claude/.credentials.json*
+cp ~/.claude/.credentials.json.pre-symlink /mnt/c/Users/{username}/.claude/.credentials.json.pre-symlink
 ```

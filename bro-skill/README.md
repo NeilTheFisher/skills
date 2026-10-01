@@ -26,10 +26,13 @@ Works with any agent that reads the Agent Skills format — and ships thin slash
 
 | Tool | Skill location | Typed `/bro` via |
 |---|---|---|
-| **Hermes Agent** | `~/.hermes/skills/bro/SKILL.md` | skill (auto) |
-| **Claude Code** | `~/.claude/skills/bro/SKILL.md` | `~/.claude/commands/bro.md` |
-| **OpenAI Codex** | `~/.codex/skills/bro/SKILL.md` | `~/.codex/prompts/bro.md` |
-| **opencode** | `~/.config/opencode/skills/bro/SKILL.md` | `~/.config/opencode/command(s)/bro.md` |
+| **Claude Code** | `~/.claude/skills/bro-skill/SKILL.md` | skill (auto) |
+| **OpenAI Codex** | `~/.codex/skills/bro-skill/SKILL.md` | skill (auto) |
+| **opencode** | `~/.config/opencode/skills/bro-skill/SKILL.md` | `$bro` (skill invocation) |
+
+All three paths are symlinks to this repo, so there is one copy of the skill.
+None of these agents has a separate slash-command file for it — invoke it as a
+skill (`$bro`), not as a command.
 
 ## Install
 

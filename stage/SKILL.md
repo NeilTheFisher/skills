@@ -18,3 +18,8 @@ and/or `git diff --stat --cached`) and stop. Do not run `git commit` yourself
 under this skill — wait for the user to explicitly say to commit (at which
 point defer to the `/commit` skill's rules: 1-line why-focused message, no
 co-author trailer).
+
+If the user goes ahead and commits in the same turn, pass `GIT_EDITOR=true`
+(`GIT_EDITOR=true git commit -m "..."`). This machine's `core.editor` is
+`code-insiders --wait`, which hangs the agent session if git ever opens an
+editor — most likely on `--amend`.

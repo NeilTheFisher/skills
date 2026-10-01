@@ -10,8 +10,8 @@ description: >
   Xiaoyuzhou Podcast, LinkedIn/jobs/recruiting, V2EX, Xueqiu (stocks), RSS.
 
   15 platforms, multi-backend routing (OpenCLI / per-platform CLIs / APIs).
-  Zero config for 6 channels. Run `agent-reach doctor --json` to see which
-  backend serves each platform right now.
+  Only 3 channels are configured here (GitHub, Twitter, Reddit). Run
+  `agent-reach doctor --json` to see which backend serves each platform right now.
 
   NOT for: writing reports/analysis/translation (this skill only FETCHES
   internet content); posting/commenting/liking (write operations); platforms
@@ -56,9 +56,17 @@ these platforms — do not invent your own approach.**
 | Web pages / articles / RSS | web | [references/web.md](references/web.md) |
 | YouTube / Bilibili / podcast transcripts | video | [references/video.md](references/video.md) |
 
-## Zero-config quick commands
+## Quick commands
+
+Verify a channel is actually live before relying on it — `agent-reach doctor --json`
+reports per-channel `status` (`ok` / `warn` / `off`). On this machine only `github`,
+`twitter`, and `reddit` are configured; `youtube` needs `yt-dlp` and Facebook,
+Instagram, and Xiaohongshu need backends installed via `agent-reach install`.
 
 ```bash
+# Always check first — it is cheap and tells you which channels to avoid
+agent-reach doctor --json
+
 # Exa web search
 mcporter call 'exa.web_search_exa(query: "query", numResults: 5)'
 
@@ -68,13 +76,15 @@ curl -s "https://r.jina.ai/URL"
 # GitHub search
 gh search repos "query" --sort stars --limit 10
 
-# YouTube subtitles (NOTE: never use yt-dlp for Bilibili — see video.md)
+# YouTube subtitles — REQUIRES yt-dlp, currently NOT installed
+# (install: python -m pip install -U "yt-dlp[default]")
+# Never use yt-dlp for Bilibili — see video.md
 yt-dlp --write-sub --skip-download -o "/tmp/%(id)s" "URL"
 
 # V2EX hot topics
 curl -s "https://www.v2ex.com/api/topics/hot.json" -H "User-Agent: agent-reach/1.0"
 
-# Bilibili search (bili-cli, no login needed)
+# Bilibili search — REQUIRES bili-cli, currently NOT installed
 bili search "query" --type video -n 5
 ```
 

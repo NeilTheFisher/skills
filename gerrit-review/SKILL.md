@@ -1,11 +1,11 @@
 ---
 name: gerrit-review
-description: Fetch a Gerrit change into a local branch and worktree (without checking it out in the main repo) and review it with /code-review. Use when the user pastes a Gerrit change URL or number and wants it reviewed, says "review this gerrit change" / "review change 83559", or describes a change to find ("review Bob's latest change", "review the open change about gallery upload").
+description: Fetch a Gerrit change into a local branch and worktree (without checking it out in the main repo) and review it with /review-changes. Use when the user pastes a Gerrit change URL or number and wants it reviewed, says "review this gerrit change" / "review change 83559", or describes a change to find ("review Bob's latest change", "review the open change about gallery upload").
 ---
 
 # Gerrit Review
 
-Fetch a Gerrit change, create a branch WITHOUT checking it out (never touch the user's working tree), add a worktree for it, and run /code-review inside that worktree so review agents can read real files, not just a diff.
+Fetch a Gerrit change, create a branch WITHOUT checking it out (never touch the user's working tree), add a worktree for it, and run /review-changes inside that worktree so review agents can read real files, not just a diff.
 
 ## Workflow
 
@@ -49,7 +49,7 @@ Run all git commands with `-C <repo>` where `<repo>` is the repo matching the ch
    git log --oneline "change-$CHANGE-$PS" -5   # show the user where the change sits
    ```
 
-5. **Invoke the code-review skill** from inside the worktree at the user's requested effort (default: the skill's default). Tell it the scope is the top commit of the current branch (`HEAD^..HEAD`), not the full diff against the main branch, unless the change sits on a stack the user also wants reviewed.
+5. **Invoke the review-changes skill** from inside the worktree at the user's requested effort (default: the skill's default). Tell it the scope is the top commit of the current branch (`HEAD^..HEAD`), not the full diff against the main branch, unless the change sits on a stack the user also wants reviewed.
 
 6. **After the review**, remind the user of cleanup:
 

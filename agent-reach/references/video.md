@@ -100,6 +100,8 @@ curl -s -b /tmp/bili_ck.txt -A "$UA" -e "https://www.bilibili.com/" \
 
 ```bash
 # 输出 Markdown 文件到 /tmp/。--polish 让 Llama 3.3 70B 给文稿补中文标点+合理分段
+# 注意：~/.agent-reach/tools/ 目前为空，该脚本尚未安装。运行前先确认存在：
+ls ~/.agent-reach/tools/xiaoyuzhou/transcribe.sh
 ~/.agent-reach/tools/xiaoyuzhou/transcribe.sh --polish "https://www.xiaoyuzhoufm.com/episode/EPISODE_ID"
 ```
 

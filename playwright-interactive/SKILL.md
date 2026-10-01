@@ -1,9 +1,20 @@
 ---
 name: "playwright-interactive"
-description: "Persistent browser and Electron interaction through `js_repl` for fast iterative UI debugging."
+description: "Persistent browser and Electron interaction through `js_repl` for fast iterative UI debugging. Requires the `js_repl` tool, which is no longer available in current Codex — prefer the `playwright` or `browser-harness` skills unless you have confirmed `js_repl` exists."
 ---
 
 # Playwright Interactive Skill
+
+> **Unavailable in current Codex.** This skill depends entirely on the `js_repl`
+> tool, which has been **removed** from Codex (`js_repl` and `js_repl_tools_only`
+> both report `removed`, and `[features] js_repl = true` in `~/.codex/config.toml`
+> is now a hard config error). `codex.emitImage` is likewise Codex-only. Nothing
+> below works in Codex, Claude, or opencode today.
+>
+> **Use instead:** the `playwright` skill (Playwright MCP via `bunx mcporter call
+> playwright.*`) for iterative UI debugging, or `browser-harness` for CDP control
+> of an already-running Chrome. Keep this file only as reference for the harness
+> patterns it documents.
 
 Use a persistent `js_repl` Playwright session to debug local web or Electron apps, keep the same handles alive across iterations, and run functional plus visual QA without restarting the whole toolchain unless the process ownership changed.
 

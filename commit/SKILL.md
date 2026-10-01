@@ -37,3 +37,8 @@ Args can combine (e.g. `--split --push`).
 - Match the repo's existing commit message style (check `git log` for tone/format).
 - If there's nothing to commit, say so — don't create an empty commit.
 - If a pre-commit hook fails, fix the issue and create a NEW commit — never `--no-verify`.
+- **Always pass `GIT_EDITOR=true`.** This machine's `core.editor` is `code-insiders --wait`, so any git command that opens an editor will hang the agent session forever. This matters most on `--amend` and on any rebase, where git may still prompt:
+  ```bash
+  GIT_EDITOR=true git commit -m "<message>"
+  ```
+  Do the same for `git rebase`, `git commit --amend`, and any interactive variant (pair it with `GIT_SEQUENCE_EDITOR` for `-i`).

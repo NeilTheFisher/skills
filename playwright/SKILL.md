@@ -29,7 +29,7 @@ npm install -g @playwright/cli@latest
 playwright-cli --help
 ```
 
-Once `npx` is present, proceed with the wrapper script. A global install of `playwright-cli` is optional.
+Once `npx` is present, proceed with the wrapper script. A global install of `playwright-cli` is optional — there is no `playwright-cli` on PATH on this machine, so the `npx --package @playwright/cli` wrapper is the only working invocation.
 
 ## Skill path (set once)
 

@@ -26,10 +26,12 @@ like an eager but unsandboxed contributor whose work must be verified.
     `&&` in a single command so the editor is already tailing the file before
     opencode writes a byte. Do not split this into two tool calls.
 
-    Use `--model` to select a model (e.g., `deepseek/v4-flash-free`):
-    ```bash
-    L=<scratchpad>/opencode-<slug>.txt; : > "$L" && { code-insiders -r "$L" || code -r "$L"; } && opencode run "$(cat <scratchpad>/prompt.txt)" --model deepseek/v4-flash-free >> "$L" 2>&1
-    ```
+Use `--model` to select a model (e.g., `opencode-go/deepseek-v4-flash`).
+   Verify a model id with `opencode models` before using it — there is no
+   `deepseek` provider, so ids like `deepseek/v4-flash-free` do not exist:
+   ```bash
+   L=<scratchpad>/opencode-<slug>.txt; : > "$L" && { code-insiders -r "$L" || code -r "$L"; } && opencode run "$(cat <scratchpad>/prompt.txt)" --model opencode-go/deepseek-v4-flash >> "$L" 2>&1
+   ```
 
    Use the session scratchpad and the shell tool's background mode so other
    work can continue. Skip the `code-insiders` half if the args said "no
@@ -48,7 +50,7 @@ like an eager but unsandboxed contributor whose work must be verified.
    command (7 days is old enough that nobody still has it open):
 
    ```bash
-   find /tmp/claude-*/*/*/scratchpad -maxdepth 1 -name 'opencode-*.txt' -mtime +7 -delete 2>/dev/null
+   find /tmp/claude-* -maxdepth 3 -name scratchpad -type d -exec find {} -maxdepth 1 -name 'opencode-*.txt' -mtime +7 -delete \; 2>/dev/null
    ```
 
 4. **Verify its work yourself.** opencode validates against the HOST

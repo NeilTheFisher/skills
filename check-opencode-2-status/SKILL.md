@@ -35,18 +35,19 @@ files.
 - **#41914** — `/tasks` view to list and manage parallel background subagents (open).
 
 **T3 Code side** — `pingdotgg/t3code`:
-- **#14239** — detect OpenCode 1.x vs 2.x per instance and route by it (maintainer stack).
-- **#14269** — run turns, text, reasoning, tools on OpenCode 2 (maintainer stack).
+- **#14239** — detect OpenCode 1.x vs 2.x per instance and route by it. **MERGED 2026-10-01.**
+- **#14269** — run turns, text, reasoning, tools on OpenCode 2. **MERGED 2026-10-01.**
 - **#13008 / #13452 / #13958** — community v2 support PRs; **#12643** — draft.
-- The **model manifest** is the real gate: `apps/server/src/provider/model-manifest.json`
-  declares `>=2.0.0` as `broken` with `recommendedRange >=1.14.19 <2.0.0`. While upstream
-  (and the fork) still carry that, T3 Code actively refuses a v2 binary and shows the
-  "use 1.14.19" downgrade banner.
+- The T3 Code PR half is done, so the **model manifest is now the only remaining gate**:
+  `apps/server/src/provider/model-manifest.json` declares `>=2.0.0` as `broken` with
+  `recommendedRange >=1.14.19 <2.0.0`. While upstream (and the fork) still carry that,
+  T3 Code actively refuses a v2 binary and shows the "use 1.14.19" downgrade banner.
 
 ## How to read the result
 
-- **Upgrade only when the T3 Code v2 PRs merge** (#14239 → #14269) *and* the manifest stops
-  marking `>=2.0.0` broken. The OpenCode side is already fine for resume.
+- **Upgrade only when the model manifest stops marking `>=2.0.0` broken.** The T3 Code
+  PRs (#14239 → #14269) merged 2026-10-01, and the OpenCode side is already fine for
+  resume — the manifest is the single remaining gate.
 - **`OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS=1` is a v1 flag.** Keep it while on v1.x
   (it gates the background `task` tool and is still required). On v2 it is unnecessary —
   background subagents are native to the `subagent` tool.
