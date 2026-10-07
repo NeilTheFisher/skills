@@ -131,6 +131,20 @@ in a browser. Never reuse or restart the user's running container.
 - Clean up unconditionally: `docker rm -f` your container(s), remove only your throwaway
   volumes by name (never `docker volume prune -a`), and remove the worktree.
 
+Director-specific local gotchas when driving that container:
+
+- `MultipleDomains` 404s unless `Host` is `DIRECTOR_PUBLIC_IP`; use
+  `http://<DNS_RECORD>.dev.plusrcs.com:<port>`, not `127.0.0.1`.
+- Router socket ports (9999 private, 8888 public) aren't published, so walls/presenters
+  never get `EventInfo`/`DevicesList`. Forward host → router container IP (small TCP proxy).
+- Chromium HTTPS-First upgrades `http://host:port` (incl. POSTs) to https and fails, and
+  `config/session.php` hardcodes `'secure' => true`, so authenticated pages can't use the
+  http port. Front the container with a TLS proxy using traefik's existing Let's Encrypt
+  cert (base64 `certificate`/`key` for the dev host under `myresolver` in the
+  `director_letsencrypt` volume's `acme-production.json`) and send `X-Forwarded-Proto:
+  https`. Browse `https://<DNS_RECORD>.dev.plusrcs.com:<proxyport>`; Secure cookies and
+  `wss:` router sockets then work.
+
 To preview a specific Gerrit CR, fetch it with `gerrit-review` first, then run this on that
 worktree.
 
