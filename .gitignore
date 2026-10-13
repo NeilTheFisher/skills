@@ -1,0 +1,11 @@
+# Private skills are symlinked in from the `private/` submodule by
+# scripts/link-private-skills.sh; the public repo must never track them.
+/check-opencode-2-status
+/deploy-director-staging
+/director-worktrees
+/gerrit-autoreview
+/gerrit-review
+/odience-android-e2e
+/sync-claude-skills
+/work-vpn
+/wsl-sync-credentials
