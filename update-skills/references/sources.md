@@ -11,6 +11,7 @@ Verified 2026-10-01. Re-verify before trusting any of it.
 | Locked | `vercel-labs/agent-skills` | `web-design-guidelines` | `npx skills update -g` |
 | Locked | `Shawnchee/frontend-god-mode` | `frontend-god-mode` | `npx skills update -g` |
 | **Untracked-vendored** | `cloudflare/skills` | 13 | manual copy, see below |
+| **Untracked-vendored** | `dzhng/skills` | 1 (`ratchet-files`) | manual copy, see below |
 | Local | — | ~25 | never auto-update |
 
 ### cloudflare/skills — untracked, rots silently
@@ -42,6 +43,28 @@ done
 
 Upstream ships 3 uninstalled skills: `basin` (R2 Iceberg rebrand of pipelines /
 r2-data-catalog / r2-sql), `k2`, `nextjs-on-cloudflare`.
+
+### dzhng/skills — untracked, one skill so far
+
+`ratchet-files` (upstream `skills/engineering/ratchet-files`), added 2026-10-19.
+No lock entry, so `npx skills update` never touches it. Sync:
+
+```bash
+git clone --depth 1 https://github.com/dzhng/skills.git /tmp/dzhng-skills
+rm -rf ~/.agents/skills/ratchet-files
+cp -a /tmp/dzhng-skills/skills/engineering/ratchet-files ~/.agents/skills/ratchet-files
+```
+
+**Re-apply after every sync:**
+
+1. `SKILL.md` frontmatter `description:` has colons and is unquoted upstream, which
+   makes YAML parsers skip the skill. Wrap it in double quotes.
+2. `SKILL.md` links `../refactor-clean/SKILL.md`, a dzhng skill not installed here.
+   De-link it (name the skill in prose instead).
+
+Interesting uninstalled siblings in that repo: `refactor-clean` (referenced by
+ratchet-files), `audit-performance`, `audit-choices`, `audit-tests`, `code-review`,
+`write-spec`, `implement-spec`, `retro`.
 
 ## Landmines
 

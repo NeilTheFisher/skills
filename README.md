@@ -1,7 +1,8 @@
 # skills
 
 Neil's public agent skills: generic engineering workflows plus skills vendored
-from public upstreams (mattpocock/skills, cloudflare/skills, and others).
+from public upstreams (mattpocock/skills, cloudflare/skills, dzhng/skills, and
+others).
 
 Internal / machine-specific skills live in the private `skills-private` repo,
 which is checked out here as the `private/` git submodule. After cloning:
