@@ -11,7 +11,7 @@ Verified 2026-10-01. Re-verify before trusting any of it.
 | Locked | `vercel-labs/agent-skills` | `web-design-guidelines` | `npx skills update -g` |
 | Locked | `Shawnchee/frontend-god-mode` | `frontend-god-mode` | `npx skills update -g` |
 | **Untracked-vendored** | `cloudflare/skills` | 13 | manual copy, see below |
-| **Untracked-vendored** | `dzhng/skills` | 1 (`ratchet-files`) | manual copy, see below |
+| **Untracked-vendored** | `dzhng/skills` | 2 (`ratchet-files`, `refactor-clean`) | manual copy, see below |
 | Local | — | ~25 | never auto-update |
 
 ### cloudflare/skills — untracked, rots silently
@@ -44,27 +44,29 @@ done
 Upstream ships 3 uninstalled skills: `basin` (R2 Iceberg rebrand of pipelines /
 r2-data-catalog / r2-sql), `k2`, `nextjs-on-cloudflare`.
 
-### dzhng/skills — untracked, one skill so far
+### dzhng/skills — untracked, two skills so far
 
-`ratchet-files` (upstream `skills/engineering/ratchet-files`), added 2026-10-19.
-No lock entry, so `npx skills update` never touches it. Sync:
+`ratchet-files` (upstream `skills/engineering/ratchet-files`) and
+`refactor-clean` (upstream `skills/engineering/refactor-clean`), added 2026-10-19.
+No lock entry, so `npx skills update` never touches them. Sync:
 
 ```bash
 git clone --depth 1 https://github.com/dzhng/skills.git /tmp/dzhng-skills
-rm -rf ~/.agents/skills/ratchet-files
-cp -a /tmp/dzhng-skills/skills/engineering/ratchet-files ~/.agents/skills/ratchet-files
+for s in ratchet-files refactor-clean; do
+  rm -rf ~/.agents/skills/"$s"
+  cp -a "/tmp/dzhng-skills/skills/engineering/$s" ~/.agents/skills/"$s"
+done
 ```
 
 **Re-apply after every sync:**
 
-1. `SKILL.md` frontmatter `description:` has colons and is unquoted upstream, which
-   makes YAML parsers skip the skill. Wrap it in double quotes.
-2. `SKILL.md` links `../refactor-clean/SKILL.md`, a dzhng skill not installed here.
-   De-link it (name the skill in prose instead).
+1. `ratchet-files/SKILL.md` frontmatter `description:` has colons and is unquoted
+   upstream, which makes YAML parsers skip the skill. Wrap it in double quotes.
+2. `ratchet-files/SKILL.md` links `../refactor-clean/SKILL.md`. Keep both skills
+   installed together, or de-link it when dropping `refactor-clean`.
 
-Interesting uninstalled siblings in that repo: `refactor-clean` (referenced by
-ratchet-files), `audit-performance`, `audit-choices`, `audit-tests`, `code-review`,
-`write-spec`, `implement-spec`, `retro`.
+Interesting uninstalled siblings in that repo: `audit-performance`, `audit-choices`,
+`audit-tests`, `code-review`, `review`, `write-spec`, `implement-spec`, `retro`.
 
 ## Landmines
 
