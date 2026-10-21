@@ -4,6 +4,7 @@
 /deploy-director-staging
 /director-worktrees
 /gerrit-autoreview
+/gerrit-comment
 /gerrit-review
 /odience-android-e2e
 /sync-claude-skills
