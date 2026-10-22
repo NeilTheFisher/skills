@@ -144,4 +144,6 @@ Open only what you need:
 - When you do not have a fresh snapshot, use placeholder refs like `eX` and say why; do not bypass refs with `run-code`.
 - Use `--headed` when a visual check will help.
 - When capturing artifacts in this repo, use `output/playwright/` and avoid introducing new top-level artifact folders.
+- `playwright-cli` writes a `.playwright-cli/` directory into the **current working directory** (snapshots, `console-*.log`, `page-*.yml`, screenshots). It is usually not gitignored, so it shows up as untracked repo noise. Before finishing, delete it (`rm -rf .playwright-cli`) and never commit it; or add `.playwright-cli/` to `.gitignore`. Running the CLI from a temp dir also avoids polluting the repo.
+- Always pass a session derived from `$OPENCODE_SESSION_ID` (`--session "pw-${OPENCODE_SESSION_ID##*_}"`) and run from a temp dir when another agent may be working: the default `default` session is shared by every agent in the same working directory. Details: `~/docs/browser-automation.md`.
 - Default to CLI commands and workflows, not Playwright test specs.
