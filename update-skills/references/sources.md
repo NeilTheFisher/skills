@@ -106,6 +106,11 @@ tar -xJf /tmp/ff.tar.xz -C /tmp
 sudo install -m 755 /tmp/ffmpeg-n8.1-latest-linux64-gpl-8.1/bin/{ffmpeg,ffprobe,ffplay} /usr/local/bin/
 ```
 
+`~/.local/bin/whisper-cli` is a shim over the local transcription server on `:8178` (see
+`~/docs/local-transcription.md`), so `doctor` reports whisper.cpp present and `--transcribe`
+works without a second model. Bark returns no word timings, so the shim's cue and word times are
+estimated; re-check any `--filler` cut made from them.
+
 ## Landmines
 
 ### deslop is local-only and MUST stay out of the lock file
