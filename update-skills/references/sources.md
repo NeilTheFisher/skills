@@ -95,9 +95,16 @@ find . -name __pycache__ -type d -prune -exec rm -rf {} +
 3. Upstream releases fast (6 versions in the days before install). Check `package.json`'s
    version before trusting a flag from the changelog.
 
-**Machine note:** Ubuntu 22.04's FFmpeg 4.4.2 makes `python3 scripts/_contract.py doctor`
-warn about CVE-2026-8461. Expected on this box, not a broken install: probe, cut, join, audio
-and `look` all work; filters added after 4.4 (e.g. `colortemperature`) do not.
+**Machine note:** Ubuntu 22.04 ships FFmpeg 4.4.2, which predates the CVE-2026-8461 fix and
+lacks `libsvtav1`. A BtbN static GPL build shadows it from `/usr/local/bin`, so `doctor`
+reports `ok` with no security advisories and only the optional transcription engines missing.
+Refresh it without touching the distro package (nothing on this box depends on apt's ffmpeg):
+
+```bash
+curl -sL -o /tmp/ff.tar.xz https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-linux64-gpl-8.1.tar.xz
+tar -xJf /tmp/ff.tar.xz -C /tmp
+sudo install -m 755 /tmp/ffmpeg-n8.1-latest-linux64-gpl-8.1/bin/{ffmpeg,ffprobe,ffplay} /usr/local/bin/
+```
 
 ## Landmines
 
