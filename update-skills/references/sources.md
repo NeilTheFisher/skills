@@ -12,6 +12,7 @@ Verified 2026-10-01. Re-verify before trusting any of it.
 | Locked | `Shawnchee/frontend-god-mode` | `frontend-god-mode` | `npx skills update -g` |
 | **Untracked-vendored** | `cloudflare/skills` | 13 | manual copy, see below |
 | **Untracked-vendored** | `dzhng/skills` | 2 (`ratchet-files`, `refactor-clean`) | manual copy, see below |
+| **Untracked-vendored** | `kajisho5/ffmpeg-skill` | 1 (`ffmpeg-skill`, v2.17.1) | manual copy of the runtime payload, see below |
 | Local | — | ~25 | never auto-update |
 
 ### cloudflare/skills — untracked, rots silently
@@ -67,6 +68,36 @@ done
 
 Interesting uninstalled siblings in that repo: `audit-performance`, `audit-choices`,
 `audit-tests`, `code-review`, `review`, `write-spec`, `implement-spec`, `retro`.
+
+### kajisho5/ffmpeg-skill — copy the payload, not the repo
+
+Added 2026-10-25 at upstream `36d023e` (v2.17.1). The repository is a skill plus an npm
+package, an MCP server, demos and 13 MB of `docs/demos/*.gif`; the installable skill is
+`bin/install.js`'s PAYLOAD list. Copy that:
+
+```bash
+git clone --depth 1 https://github.com/kajisho5/ffmpeg-skill.git /tmp/ffmpeg-skill
+rm -rf ~/.agents/skills/ffmpeg-skill
+mkdir -p ~/.agents/skills/ffmpeg-skill/docs
+cd ~/.agents/skills/ffmpeg-skill
+cp -a /tmp/ffmpeg-skill/{SKILL.md,LICENSE,package.json,scripts,templates,references,mcp} .
+cp -a /tmp/ffmpeg-skill/docs/contract.md docs/
+find . -name __pycache__ -type d -prune -exec rm -rf {} +
+```
+
+**Re-apply after every sync:**
+
+1. `docs/contract.md` is not documentation: `scripts/` and `references/gotchas.md` cite it by
+   path and `SKILL.md` tells the agent to trust the contract. Keep `docs/contract.md`;
+   `docs/design-decisions.md`, `docs/roadmap.md` and `docs/demos.md` are safe to skip.
+2. `npx skills update -g` must not touch it — there is no lock entry, same as the cloudflare
+   and dzhng sets. A `docs/demos/` directory reappearing means someone copied the whole repo.
+3. Upstream releases fast (6 versions in the days before install). Check `package.json`'s
+   version before trusting a flag from the changelog.
+
+**Machine note:** Ubuntu 22.04's FFmpeg 4.4.2 makes `python3 scripts/_contract.py doctor`
+warn about CVE-2026-8461. Expected on this box, not a broken install: probe, cut, join, audio
+and `look` all work; filters added after 4.4 (e.g. `colortemperature`) do not.
 
 ## Landmines
 

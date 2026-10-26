@@ -10,3 +10,7 @@
 /sync-claude-skills
 /work-vpn
 /wsl-sync-credentials
+
+# Python bytecode from skill scripts (`python3 <skill>/scripts/*.py` on a vendored skill)
+__pycache__/
+*.pyc
