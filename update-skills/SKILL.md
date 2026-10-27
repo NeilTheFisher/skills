@@ -122,8 +122,8 @@ Check these classes; each has bitten this repo before:
   holds; check for keys present on the destination but not the source.
 - **Scattered copies.** Real copies in other agent home dirs diverge silently. Prefer
   symlinks to this repo; check `find ~ -maxdepth 4 -type d -name skills`.
-- **Stale skill catalogs.** Regenerate the `skills:start` block in AGENTS.md from what is
-  actually on disk; verify every listed name exists.
+- **Stale skill catalogs.** The harness generates the catalog from SKILL.md frontmatter, so
+  keep descriptions current and verify every skill has valid frontmatter.
 
 ## Rules
 

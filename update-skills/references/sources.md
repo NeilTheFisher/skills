@@ -163,7 +163,6 @@ a warning banner. `playwright` is the working path.
 ### In-repo conventions
 
 - `AGENTS.md` documents the install and Cloudflare-sync procedure. Update it when tiers change.
-- The `skills:start` block in `~/.config/opencode/AGENTS.md` is hand-maintained, not
-  generated. It was wrong for months (advertised 11 nonexistent skills, omitted ~45 real
-  ones); regenerated 2026-10-01 from on-disk frontmatter.
+- The harness generates the skill catalog from on-disk frontmatter; `AGENTS.md` no longer
+  embeds one (it was hand-maintained and drifted).
 - `safe-restart-check` is project-scoped to `~/repos/t3code-web-setup`, not this repo.
