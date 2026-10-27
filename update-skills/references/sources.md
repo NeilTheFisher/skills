@@ -108,8 +108,10 @@ sudo install -m 755 /tmp/ffmpeg-n8.1-latest-linux64-gpl-8.1/bin/{ffmpeg,ffprobe,
 
 `~/.local/bin/whisper-cli` is a shim over the local transcription server on `:8178` (see
 `~/docs/local-transcription.md`), so `doctor` reports whisper.cpp present and `--transcribe`
-works without a second model. Bark returns no word timings, so the shim's cue and word times are
-estimated; re-check any `--filler` cut made from them.
+works without a second model. Bark returns no word timings: the shim splits the text into cues
+and snaps their boundaries into the audio's pauses, so cue timing is close but word times inside
+a cue are estimates — re-check any `--filler` cut. Orukeet's own words pass through when that
+backend is selected.
 
 ## Landmines
 
