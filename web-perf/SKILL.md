@@ -15,18 +15,16 @@ Your knowledge of web performance metrics, thresholds, and tooling APIs may be o
 | Chrome DevTools docs | `https://developer.chrome.com/docs/devtools/performance` | Tooling APIs, trace analysis |
 | Lighthouse scoring | `https://developer.chrome.com/docs/lighthouse/performance/performance-scoring` | Score weights, metric thresholds |
 
-## FIRST: Verify MCP Tools Available
+## Browser tooling
 
-Discover available browser and performance tools before starting. Use the capabilities available for the requested audit. If trace tools are unavailable, continue any useful source or network analysis and state which measurements could not be collected.
+Use `bunx chrome-devtools-axi` for traces, network inspection, and screenshots. Its commands change, so the source of truth is the CLI itself:
 
-If the user wants Chrome DevTools MCP setup, consult its [installation guide](https://github.com/ChromeDevTools/chrome-devtools-mcp#quick-start) and use the latest package version. Only change MCP configuration when setup is within the user's authorized scope; otherwise ask first. For clients using `command` and `args`, an example server entry is:
-
-```json
-"chrome-devtools": {
-  "command": "npx",
-  "args": ["-y", "chrome-devtools-mcp@latest"]
-}
+```bash
+bunx chrome-devtools-axi --help              # commands and flags
+bunx chrome-devtools-axi <command> --help    # per-command usage
 ```
+
+Do not hardcode subcommand names from memory or from this skill; read `--help` first and follow the CLI's next-step hints. If trace tooling is unavailable, continue source and network analysis and say which measurements could not be collected.
 
 ## Key Guidelines
 
@@ -36,17 +34,6 @@ If the user wants Chrome DevTools MCP setup, consult its [installation guide](ht
 - **Skip non-issues**: If render-blocking resources have 0ms estimated impact, note but don't recommend action.
 - **Be specific**: Say "compress hero.png (450KB) to WebP" not "optimize images".
 - **Prioritize ruthlessly**: A site with 200ms LCP and 0 CLS is already excellent—say so.
-
-## Quick Reference
-
-| Task | Tool Call |
-|------|-----------|
-| Load page | `navigate_page(url: "...")` |
-| Start trace | `performance_start_trace(autoStop: true, reload: true)` |
-| Analyze insight | `performance_analyze_insight(insightSetId: "...", insightName: "...")` |
-| List requests | `list_network_requests(resourceTypes: ["Script", "Stylesheet", ...])` |
-| Request details | `get_network_request(reqid: <id>)` |
-| A11y snapshot | `take_snapshot(verbose: true)` |
 
 ## Workflow
 
@@ -61,44 +48,23 @@ Audit Progress:
 - [ ] Phase 5: Codebase analysis (skip if third-party site)
 ```
 
-### Phase 1: Performance Trace
+### Phase 1: Performance trace
 
-1. Navigate to the target URL:
-   ```
-   navigate_page(url: "<target-url>")
-   ```
+Navigate to the target and record a cold-load trace with reload enabled, using the navigation and performance commands from `bunx chrome-devtools-axi --help`. Retrieve the trace results and keep the insight set id for the next phase.
 
-2. Start a performance trace with reload to capture cold-load metrics:
-   ```
-   performance_start_trace(autoStop: true, reload: true)
-   ```
+If the trace is empty or fails, confirm the page loaded first. If an insight name does not match, list the available insights from the trace response.
 
-3. Wait for trace completion, then retrieve results.
+### Phase 2: Core Web Vitals analysis
 
-**Troubleshooting:**
-- If trace returns empty or fails, verify the page loaded correctly with `navigate_page` first
-- If insight names don't match, inspect the trace response to list available insights
+Extract the key metrics from the trace's performance insights. Insight names vary by Chrome DevTools version, so discover them from the trace response rather than assuming.
 
-### Phase 2: Core Web Vitals Analysis
-
-Use `performance_analyze_insight` to extract key metrics.
-
-**Note:** Insight names may vary across Chrome DevTools versions. If an insight name doesn't work, check the `insightSetId` from the trace response to discover available insights.
-
-Common insight names:
-
-| Metric | Insight Name | What to Look For |
-|--------|--------------|------------------|
-| LCP | `LCPBreakdown` | Time to largest contentful paint; breakdown of TTFB, resource load, render delay |
-| CLS | `CLSCulprits` | Elements causing layout shifts (images without dimensions, injected content, font swaps) |
-| Render Blocking | `RenderBlocking` | CSS/JS blocking first paint |
-| Document Latency | `DocumentLatency` | Server response time issues |
-| Network Dependencies | `NetworkRequestsDepGraph` | Request chains delaying critical resources |
-
-Example:
-```
-performance_analyze_insight(insightSetId: "<id-from-trace>", insightName: "LCPBreakdown")
-```
+| Metric | What to Look For |
+|--------|------------------|
+| LCP | Time to largest contentful paint; breakdown of TTFB, resource load, render delay |
+| CLS | Elements causing layout shifts (images without dimensions, injected content, font swaps) |
+| Render Blocking | CSS/JS blocking first paint |
+| Document Latency | Server response time issues |
+| Network Dependencies | Request chains delaying critical resources |
 
 **Key thresholds (good/needs-improvement/poor):**
 - TTFB: < 800ms / < 1.8s / > 1.8s
@@ -109,12 +75,9 @@ performance_analyze_insight(insightSetId: "<id-from-trace>", insightName: "LCPBr
 - CLS: < 0.1 / < 0.25 / > 0.25
 - Speed Index: < 3.4s / < 5.8s / > 5.8s
 
-### Phase 3: Network Analysis
+### Phase 3: Network analysis
 
-List all network requests to identify optimization opportunities:
-```
-list_network_requests(resourceTypes: ["Script", "Stylesheet", "Document", "Font", "Image"])
-```
+List network requests (scripts, stylesheets, documents, fonts, images) and inspect individual requests.
 
 **Look for:**
 
@@ -125,19 +88,10 @@ list_network_requests(resourceTypes: ["Script", "Stylesheet", "Document", "Font"
 5. **Large payloads**: Uncompressed or oversized JS/CSS bundles
 6. **Unused preconnects**: If flagged, verify by checking if ANY requests went to that origin. If zero requests, it's definitively unused—recommend removal. If requests exist but loaded late, the preconnect may still be valuable.
 
-For detailed request info:
-```
-get_network_request(reqid: <id>)
-```
+### Phase 4: Accessibility snapshot
 
-### Phase 4: Accessibility Snapshot
+Take an accessibility tree snapshot and flag high-level gaps:
 
-Take an accessibility tree snapshot:
-```
-take_snapshot(verbose: true)
-```
-
-**Flag high-level gaps:**
 - Missing or duplicate ARIA IDs
 - Elements with poor contrast ratios (check against WCAG AA: 4.5:1 for normal text, 3:1 for large text)
 - Focus traps or missing focus indicators
