@@ -25,6 +25,17 @@ sudo.exe powershell.exe -NoProfile -ExecutionPolicy Bypass -File 'C:\Users\<you>
 
 If PowerShell refuses to run it from `\\wsl.localhost\...`, the copy above is why — always copy into the Windows temp first.
 
+## Desktop shortcut (for the human, not the agent)
+
+`scripts/install.ps1` installs a `Taskbar Fix` desktop shortcut:
+
+```bash
+cp ~/.agents/skills/windows-taskbar-fix/scripts/*.ps1 /mnt/c/Users/<you>/AppData/Local/Temp/
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File 'C:\Users\<you>\AppData\Local\Temp\install.ps1'
+```
+
+It copies the repair script to `%LOCALAPPDATA%\taskbar-fix\`, writes a `run.cmd` that elevates through `sudo.exe` and pauses so the result stays readable, and drops the shortcut on the Desktop. One UAC consent per run; no scheduled task, by design. Re-run the installer after changing `taskbar-fix.ps1`, or the copy goes stale.
+
 ## The ladder
 
 | Step | Action | Needs admin |
