@@ -22,10 +22,10 @@ the user in their editor. The winner is re-applied; the rest are discarded.
    - Syntax check (`node --check`, `php -l`, etc.)
    - Save the patch:
      `git diff <files> > $TMPDIR/variant-<letter>.patch`
-   - Hard-reload the page via chrome-devtools MCP
-     (`bunx mcporter call chrome-devtools.navigate_page type=reload ignoreCache=true`)
+   - Hard-reload the page via chrome-devtools-axi
+     (`bunx chrome-devtools-axi eval "location.reload()"`)
    - Screenshot as PNG (not low-quality JPEG) with a descriptive name:
-     `bunx mcporter call chrome-devtools.take_screenshot format=png filePath=$TMPDIR/variant-<letter>-<slug>.png`
+     `bunx chrome-devtools-axi screenshot $TMPDIR/variant-<letter>-<slug>.png`
    - If the variant is about interaction (menus, modals), capture it in the
      open/active state; take a second screenshot of secondary views if the
      variant moves content elsewhere.
