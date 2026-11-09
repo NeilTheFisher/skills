@@ -198,6 +198,9 @@ export async function launch(opts = {}) {
 
   const ephemeral = !opts.profile;
   const autoClean = ephemeral && opts.autoClean !== false && opts.keepProfile !== true;
+  if (ephemeral && opts.keepProfile !== true && opts.watch !== false) {
+    spawnWatcher(port, profileWsl);
+  }
 
   let finished = false;
   browser.on('disconnected', () => {
@@ -374,7 +377,6 @@ async function main() {
         2,
       ),
     );
-    if (h.ephemeral && !flags.keepProfile) spawnWatcher(h.port, h.profileWsl);
     // Detach without closing Chrome, then exit so the process does not hang on the CDP socket.
     await h.browser.close().catch(() => {});
     process.exit(0);
