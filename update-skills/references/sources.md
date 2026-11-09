@@ -7,12 +7,15 @@ Verified 2026-10-01. Re-verify before trusting any of it.
 | Tier | Source | Skills | Update command |
 |---|---|---|---|
 | Locked | `mattpocock/skills` | 7 (see below) | `npx skills update -g` |
+| **Untracked-vendored** | `mattpocock/skills` | 2 (`codebase-design`, `domain-modeling`) | manual copy, see below |
 | Locked | `cursor/plugins` | `fix-merge-conflicts`, `thermo-nuclear-code-quality-review` | `npx skills update -g` |
 | Locked | `vercel-labs/agent-skills` | `web-design-guidelines` | `npx skills update -g` |
 | Locked | `Shawnchee/frontend-god-mode` | `frontend-god-mode` | `npx skills update -g` |
 | **Untracked-vendored** | `cloudflare/skills` | 13 | manual copy, see below |
 | **Untracked-vendored** | `dzhng/skills` | 2 (`ratchet-files`, `refactor-clean`) | manual copy, see below |
 | **Untracked-vendored** | `kajisho5/ffmpeg-skill` | 1 (`ffmpeg-skill`, v2.17.1) | manual copy of the runtime payload, see below |
+| **Untracked-vendored** | `caldoai/skills` | 1 (`untangle-codebase`) | manual copy, see below |
+| Locked | `janestreet/agent_skills` | 1 (`socratic-tutor`) | `npx skills update -g` |
 | Local | — | ~25 | never auto-update |
 
 ### cloudflare/skills — untracked, rots silently
@@ -68,6 +71,48 @@ done
 
 Interesting uninstalled siblings in that repo: `audit-performance`, `audit-choices`,
 `audit-tests`, `code-review`, `review`, `write-spec`, `implement-spec`, `retro`.
+
+### mattpocock/skills — two more, copied not locked
+
+Added 2026-11-05 so `improve-codebase-architecture`, `tdd`, `triage` and
+`grill-with-docs` stop calling skills that were never installed. Both live in the
+same upstream as the locked seven, but they have no lock entry: `npx skills add`
+is interactive-only (no `--skill` flag) and the CLI's `skillFolderHash` is not a
+`git write-tree` hash, so it can't be hand-written into `.skill-lock.json`. Sync:
+
+```bash
+git clone --depth 1 https://github.com/mattpocock/skills.git /tmp/mp-skills
+for s in codebase-design domain-modeling; do
+  rm -rf ~/.agents/skills/"$s"
+  cp -a "/tmp/mp-skills/skills/engineering/$s" ~/.agents/skills/"$s"
+done
+```
+
+**Re-apply after every sync:** nothing yet. Both are unmodified upstream copies;
+check `codebase-design/DESIGN-IT-TWICE.md` and `domain-modeling/*-FORMAT.md` still
+exist, since sibling skills cite those files by name.
+
+### caldoai/skills — untangle-codebase
+
+Added 2026-11-05 (Maze, one-skill repo, MIT). A single unmodified `SKILL.md` with no
+scripts, so copying it is cheap:
+
+```bash
+git clone --depth 1 https://github.com/caldoai/skills.git /tmp/caldo-skills
+rm -rf ~/.agents/skills/untangle-codebase
+cp -a /tmp/caldo-skills/skills/untangle-codebase ~/.agents/skills/untangle-codebase
+```
+
+**Re-apply after every sync:**
+
+1. Step 5 ("Check, and repeat until done") is rewritten locally: every subagent runs in
+   the background, and a refactoring subagent must deslop/simplify its own changes and run
+   the project's own lint/test/build before reporting back. Upstream assumes foreground
+   subagents, which blocks the session — keep the local wording.
+2. Overlaps `improve-codebase-architecture` (deepening candidates), `refactor-clean`
+   (sediment) and `thermo-nuclear-code-quality-review` (structural review). It is the only
+   one that runs a whole-repo sweep to completion, so keep the distinction in mind rather
+   than letting the four converge.
 
 ### kajisho5/ffmpeg-skill — copy the payload, not the repo
 
@@ -138,10 +183,10 @@ Upstream renamed the `CONTEXT.md` convention to `GLOSSARY.md`. Applied in
 `~/repos/personal/trading-bot` on 2026-10-01. Any other repo using the old name will be
 silently ignored by updated skills.
 
-Not installed, available upstream: `code-review`, `codebase-design`, `domain-modeling`,
-`implement`, `implement-spec`, `pr`, `research`, `retro`, `wayfinder`, `wizard`,
-`handoff`, `teach`, `to-questionnaire`, and misc `git-guardrails-claude-code`,
-`migrate-to-shoehorn`, `scaffold-exercises`, `setup-pre-commit`.
+Not installed, available upstream: `code-review`, `implement`, `implement-spec`, `pr`,
+`research`, `retro`, `wayfinder`, `wizard`, `handoff`, `teach`, `to-questionnaire`, and
+misc `git-guardrails-claude-code`, `migrate-to-shoehorn`, `scaffold-exercises`,
+`setup-pre-commit`.
 
 ### browser-harness is vendored, not a symlink
 
