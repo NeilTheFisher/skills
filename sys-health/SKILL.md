@@ -1,6 +1,12 @@
 ---
 name: sys-health
-description: Read-only audit of a Windows + WSL2 system: disk (including WSL vhdx bloat and package caches), Docker, Windows storage, startup apps, WSL config, backups, and T3 state DB. Reports reclaimable space with risk levels, and offers a confirmation-gated clean mode. Use when the user asks to check system health, free space, what's slowing the machine, or to run a monthly cleanup. Works on Windows 11 + WSL2 (Ubuntu).
+description: >-
+  Read-only audit of a Windows + WSL2 system: disk (including WSL vhdx bloat and
+  package caches), Docker, Windows storage, startup apps, WSL config, backups, and
+  T3 state DB. Reports reclaimable space with risk levels, and offers a
+  confirmation-gated clean mode. Use when the user asks to check system health,
+  free space, what's slowing the machine, or to run a monthly cleanup. Works on
+  Windows 11 + WSL2 (Ubuntu).
 ---
 
 # System Health Audit (Windows + WSL2)
