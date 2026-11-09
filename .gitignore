@@ -10,6 +10,14 @@
 /sync-claude-skills
 /work-vpn
 /wsl-sync-credentials
+/authed-screenshot
+/daily-gems
+/social-clip-delivery
+
+# Claude Code's cache of Anthropic's bundled skills (docs, pdf, xlsx, pptx, ...).
+# Machine-local: the app writes it into `<skills>/synced/<account>_<round>/` and
+# regenerates it on sync, so it is never tracked even though it lives in this tree.
+/synced/
 
 # Python bytecode from skill scripts (`python3 <skill>/scripts/*.py` on a vendored skill)
 __pycache__/
