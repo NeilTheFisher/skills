@@ -1,20 +1,20 @@
 # Source inventory and landmines
 
-Verified 2026-10-01. Re-verify before trusting any of it.
+Verified 2026-11-09 for the mattpocock and caldoai entries; the cloudflare, dzhng and
+ffmpeg sections date from 2026-10-01 unless noted. Re-verify before trusting any of it.
 
 ## Sources
 
 | Tier | Source | Skills | Update command |
 |---|---|---|---|
-| Locked | `mattpocock/skills` | 7 (see below) | `npx skills update -g` |
-| **Untracked-vendored** | `mattpocock/skills` | 2 (`codebase-design`, `domain-modeling`) | manual copy, see below |
+| Locked | `mattpocock/skills` | 9 (see below) | `npx skills update -g` |
 | Locked | `cursor/plugins` | `fix-merge-conflicts`, `thermo-nuclear-code-quality-review` | `npx skills update -g` |
 | Locked | `vercel-labs/agent-skills` | `web-design-guidelines` | `npx skills update -g` |
 | Locked | `Shawnchee/frontend-god-mode` | `frontend-god-mode` | `npx skills update -g` |
 | **Untracked-vendored** | `cloudflare/skills` | 13 | manual copy, see below |
 | **Untracked-vendored** | `dzhng/skills` | 2 (`ratchet-files`, `refactor-clean`) | manual copy, see below |
 | **Untracked-vendored** | `kajisho5/ffmpeg-skill` | 1 (`ffmpeg-skill`, v2.17.1) | manual copy of the runtime payload, see below |
-| **Untracked-vendored** | `caldoai/skills` | 1 (`untangle-codebase`) | manual copy, see below |
+| Locked | `caldoai/skills` | 1 (`untangle-codebase`) | `npx skills update -g` |
 | Locked | `janestreet/agent_skills` | 1 (`socratic-tutor`) | `npx skills update -g` |
 | Local | — | ~25 | never auto-update |
 
@@ -72,38 +72,39 @@ done
 Interesting uninstalled siblings in that repo: `audit-performance`, `audit-choices`,
 `audit-tests`, `code-review`, `review`, `write-spec`, `implement-spec`, `retro`.
 
-### mattpocock/skills — two more, copied not locked
+### mattpocock/skills — two more, locked by hand
 
 Added 2026-11-05 so `improve-codebase-architecture`, `tdd`, `triage` and
-`grill-with-docs` stop calling skills that were never installed. Both live in the
-same upstream as the locked seven, but they have no lock entry: `npx skills add`
-is interactive-only (no `--skill` flag) and the CLI's `skillFolderHash` is not a
-`git write-tree` hash, so it can't be hand-written into `.skill-lock.json`. Sync:
+`grill-with-docs` stop calling skills that were never installed. Both are
+byte-identical upstream copies, and both now have a `.skill-lock.json` entry, so
+`npx skills update -g` maintains them.
+
+The entries were written by hand because `npx skills add` is interactive-only (no
+`--skill` flag). `skillFolderHash` is **the upstream git tree SHA of the folder**,
+i.e. `git rev-parse HEAD:<path>` in a clone, not a content hash and not
+`git write-tree` on the installed copy:
 
 ```bash
 git clone --depth 1 https://github.com/mattpocock/skills.git /tmp/mp-skills
-for s in codebase-design domain-modeling; do
-  rm -rf ~/.agents/skills/"$s"
-  cp -a "/tmp/mp-skills/skills/engineering/$s" ~/.agents/skills/"$s"
-done
+cd /tmp/mp-skills && git rev-parse HEAD:skills/engineering/codebase-design \
+  HEAD:skills/engineering/domain-modeling
 ```
 
-**Re-apply after every sync:** nothing yet. Both are unmodified upstream copies;
-check `codebase-design/DESIGN-IT-TWICE.md` and `domain-modeling/*-FORMAT.md` still
-exist, since sibling skills cite those files by name.
+To install on a fresh machine, copy the two folders into `~/.agents/skills` and
+write entries of that shape. Sync afterwards with `npx skills update -g`.
+
+**Re-apply after every sync:** nothing. Check `codebase-design/DESIGN-IT-TWICE.md`
+and `domain-modeling/*-FORMAT.md` still exist, since sibling skills cite those
+files by name.
 
 ### caldoai/skills — untangle-codebase
 
-Added 2026-11-05 (Maze, one-skill repo, MIT). A single unmodified `SKILL.md` with no
-scripts, so copying it is cheap:
-
-```bash
-git clone --depth 1 https://github.com/caldoai/skills.git /tmp/caldo-skills
-rm -rf ~/.agents/skills/untangle-codebase
-cp -a /tmp/caldo-skills/skills/untangle-codebase ~/.agents/skills/untangle-codebase
-```
-
-**Re-apply after every sync:**
+Added 2026-11-05 (Maze, one-skill repo, MIT). Locked, so `npx skills update -g`
+maintains it; the entry's `skillFolderHash` is the **upstream** tree SHA
+(`git rev-parse HEAD:skills/untangle-codebase`), not the hash of the installed
+copy. That is deliberate: it keeps `update` from firing and overwriting the local
+step-5 edit below while upstream is unchanged. When upstream does change, take the
+update and then re-apply:
 
 1. Step 5 ("Check, and repeat until done") is rewritten locally: every subagent runs in
    the background, and a refactoring subagent must deslop/simplify its own changes and run
