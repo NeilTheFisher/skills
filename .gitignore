@@ -13,6 +13,7 @@
 /authed-screenshot
 /daily-gems
 /social-clip-delivery
+/discord-voice
 
 # Claude Code's cache of Anthropic's bundled skills (docs, pdf, xlsx, pptx, ...).
 # Machine-local: the app writes it into `<skills>/synced/<account>_<round>/` and
