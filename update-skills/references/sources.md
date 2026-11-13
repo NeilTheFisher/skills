@@ -1,7 +1,8 @@
 # Source inventory and landmines
 
-Verified 2026-11-09 for the mattpocock and caldoai entries; the cloudflare, dzhng and
-ffmpeg sections date from 2026-10-01 unless noted. Re-verify before trusting any of it.
+Verified 2026-11-13 for the animatic pair; 2026-11-09 for the mattpocock and caldoai
+entries; the cloudflare, dzhng and ffmpeg sections date from 2026-10-01 unless noted.
+Re-verify before trusting any of it.
 
 ## Sources
 
@@ -12,6 +13,7 @@ ffmpeg sections date from 2026-10-01 unless noted. Re-verify before trusting any
 | Locked | `vercel-labs/agent-skills` | `web-design-guidelines` | `npx skills update -g` |
 | Locked | `Shawnchee/frontend-god-mode` | `frontend-god-mode` | `npx skills update -g` |
 | **Untracked-vendored** | `cloudflare/skills` | 13 | manual copy, see below |
+| **Untracked-vendored** | `mattpocock/skills` branch `animatic-skill` | 2 (`animatic`, `setup-animatic`) | manual copy from the branch, see below |
 | **Untracked-vendored** | `dzhng/skills` | 2 (`ratchet-files`, `refactor-clean`) | manual copy, see below |
 | **Untracked-vendored** | `kajisho5/ffmpeg-skill` | 1 (`ffmpeg-skill`, v2.17.1) | manual copy of the runtime payload, see below |
 | Locked | `caldoai/skills` | 1 (`untangle-codebase`) | `npx skills update -g` |
@@ -96,6 +98,39 @@ write entries of that shape. Sync afterwards with `npx skills update -g`.
 **Re-apply after every sync:** nothing. Check `codebase-design/DESIGN-IT-TWICE.md`
 and `domain-modeling/*-FORMAT.md` still exist, since sibling skills cite those
 files by name.
+
+### mattpocock/skills `animatic-skill` branch — pinned to an unmerged PR
+
+`animatic` (model-invoked) and `setup-animatic` (user-invoked) make a narrated video of
+still frames: Playwright frames, TTS, ffmpeg, one command. Added 2026-11-13 at branch
+`animatic-skill` `7100905`, PR [mattpocock/skills#1422](https://github.com/mattpocock/skills/pull/1422)
+still open, so neither is on `main` and no lock entry is possible: `npx skills add
+--skill=` resolves against `main` only, and a hand-written folder hash for a branch would
+make `npx skills update -g` fail. Vendored by hand instead:
+
+```bash
+git clone --depth 1 --branch animatic-skill https://github.com/mattpocock/skills.git /tmp/mp-animatic
+for s in animatic setup-animatic; do
+  rm -rf ~/.agents/skills/"$s"
+  cp -a /tmp/mp-animatic/skills/in-progress/"$s" ~/.agents/skills/"$s"
+done
+```
+
+**Re-apply after every sync:**
+
+1. To bump, change the branch's HEAD; when PR 1422 merges, replace this section with lock
+   entries and move both folders to the top of the lock file (`skillFolderHash` =
+   `git rev-parse HEAD:skills/in-progress/animatic`, per the mattpocock note above).
+2. `setup-animatic/SKILL.md` sets `disable-model-invocation: true` on purpose: it is
+   `/setup-animatic`, never auto-invoked, and it must sit beside `animatic` because
+   `animatic/SKILL.md` links `../setup-animatic/{VOICE,RENDERER}.md`. Install or drop the
+   pair together.
+3. Runtime deps are per-machine, not per-skill: `ffmpeg` and `node` 18+, and the voice
+   either a keyed API / `edge-tts` / `kokoro` (`setup-animatic` writes the choice into each
+   repo's `docs/agents/animatic.md`). The scripts install their own Playwright and Kokoro
+   into `~/.cache/animatic` on first `build`; a bare `npx` Chromium does not cover it.
+4. `docs/agents/animatic.md` (branch `animatic-config`) is the seed the setup skill writes
+   into a repo. It is not a skill and is not installed here.
 
 ### caldoai/skills — untangle-codebase
 
