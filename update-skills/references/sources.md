@@ -14,6 +14,7 @@ Re-verify before trusting any of it.
 | Locked | `Shawnchee/frontend-god-mode` | `frontend-god-mode` | `npx skills update -g` |
 | **Untracked-vendored** | `cloudflare/skills` | 13 | manual copy, see below |
 | **Untracked-vendored** | `mattpocock/skills` branch `animatic-skill` | 2 (`animatic`, `setup-animatic`) | manual copy from the branch, see below |
+| **Untracked-vendored** | `react-doctor` npm package | 1 (`react-doctor`) | manual copy of `dist/skills/react-doctor`, see below |
 | **Untracked-vendored** | `dzhng/skills` | 2 (`ratchet-files`, `refactor-clean`) | manual copy, see below |
 | **Untracked-vendored** | `kajisho5/ffmpeg-skill` | 1 (`ffmpeg-skill`, v2.17.1) | manual copy of the runtime payload, see below |
 | Locked | `caldoai/skills` | 1 (`untangle-codebase`) | `npx skills update -g` |
@@ -131,6 +132,22 @@ done
    into `~/.cache/animatic` on first `build`; a bare `npx` Chromium does not cover it.
 4. `docs/agents/animatic.md` (branch `animatic-config`) is the seed the setup skill writes
    into a repo. It is not a skill and is not installed here.
+
+### react-doctor — the package ships it, the repo links must follow
+
+Added 2026-11-11 from the `react-doctor` npm package (currently 0.9.23), whose
+`dist/skills/react-doctor/` is the installable skill. The first copy took only
+`SKILL.md`, which left `references/explain.md` dangling, so keep the whole folder:
+
+```bash
+cd /tmp && npm pack react-doctor@latest && tar -xzf react-doctor-*.tgz
+rm -rf ~/.agents/skills/react-doctor
+cp -a package/dist/skills/react-doctor ~/.agents/skills/react-doctor
+```
+
+No lock entry, so `npx skills update -g` never touches it. The package version
+moves with the CLI's releases; re-diff `SKILL.md` against the tarball before
+assuming a local copy is current.
 
 ### caldoai/skills — untangle-codebase
 
