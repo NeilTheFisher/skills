@@ -1,6 +1,6 @@
 ---
 name: "playwright-interactive"
-description: "Persistent browser and Electron interaction through `js_repl` for fast iterative UI debugging. Requires the `js_repl` tool, which is no longer available in current Codex — prefer the `playwright` or `browser-harness` skills unless you have confirmed `js_repl` exists."
+description: "Persistent browser and Electron interaction through `js_repl` for fast iterative UI debugging. Requires the `js_repl` tool, which is no longer available in current Codex — prefer the `playwright` skill unless you have confirmed `js_repl` exists."
 ---
 
 # Playwright Interactive Skill
@@ -12,9 +12,8 @@ description: "Persistent browser and Electron interaction through `js_repl` for 
 > below works in Codex, Claude, or opencode today.
 >
 > **Use instead:** the `playwright` skill (Playwright MCP via `bunx mcporter call
-> playwright.*`) for iterative UI debugging, or `browser-harness` for CDP control
-> of an already-running Chrome. Keep this file only as reference for the harness
-> patterns it documents.
+> playwright.*`) for iterative UI debugging. Keep this file only as reference for
+> the harness patterns it documents.
 
 Use a persistent `js_repl` Playwright session to debug local web or Electron apps, keep the same handles alive across iterations, and run functional plus visual QA without restarting the whole toolchain unless the process ownership changed.
 

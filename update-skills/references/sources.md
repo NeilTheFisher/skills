@@ -246,17 +246,12 @@ Not installed, available upstream: `code-review`, `implement`, `implement-spec`,
 misc `git-guardrails-claude-code`, `migrate-to-shoehorn`, `scaffold-exercises`,
 `setup-pre-commit`.
 
-### browser-harness is vendored, not a symlink
+### browser-harness was removed (2026-11-17)
 
-`browser-harness/SKILL.md` was a git symlink (mode `120000`) to
-`/home/nfisher/Developer/browser-harness/SKILL.md` — dangling on any other clone.
-Converted to a real file 2026-10-01. Refresh with:
-
-```bash
-cp ~/Developer/browser-harness/SKILL.md ~/.agents/skills/browser-harness/SKILL.md
-```
-
-That re-copy drops the local header and the upstream-PR-safety edit; re-apply both.
+The vendored `browser-harness` skill, its `~/Developer/browser-harness` clone and
+the editable `harness` uv tool are gone; the user had never used it. If it is
+ever restored, vendor `SKILL.md` as a real file (not a symlink), re-apply the
+local preference header, and re-clone the upstream for `domain-skills/`.
 
 ### Skills that are intentionally broken
 
