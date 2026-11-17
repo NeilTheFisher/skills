@@ -65,3 +65,7 @@ saved flow for cheap repeated lookups.
 If the lookup stabilizes and you want a code artifact outside agent-browser,
 `agent-browser skills get derive-client` turns a recorded HAR into a standalone
 client or CLI that calls the site's internal API directly.
+
+Verified against agent-browser 0.43.0 on 2026-11-17 with a public Wikipedia
+search. Re-check the flags with `agent-browser skills get core --ref commands`
+after an upgrade.

@@ -126,6 +126,21 @@ is usually the part that cannot be scripted.
    split multi-window flows into two projects or two contexts inside one test.
 4. Wire it into CI as described in `playwright-automation`.
 
+## First live run: improve this skill
+
+The replay path is verified, but the human recording UX has not been exercised
+on a real app yet. The first live use should leave this skill better than it
+found it, in the same session:
+
+- Record the app and route, the login method, and whether `stop.sh` wrote
+  `state-<id>.json`.
+- Note every step that needed a manual wait, a reload, or a locator the
+  inspector got wrong.
+- Run `replay.sh`. If it fails, fix the script or the spec, then add a gotcha
+  here with the cause, not just the symptom.
+- Fix the known `stop.sh` issue on that run: it signals every codegen process
+  on the machine instead of only the ones in the recording directory.
+
 ## Done when
 
 - `state-*.json` and `flow-*.spec.ts` exist for every window that recorded.
