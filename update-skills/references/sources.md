@@ -1,7 +1,8 @@
 # Source inventory and landmines
 
-Verified 2026-11-13 for the animatic pair; 2026-11-09 for the mattpocock and caldoai
-entries; the cloudflare, dzhng and ffmpeg sections date from 2026-10-01 unless noted.
+Verified 2026-11-13 for the animatic pair; 2026-11-17 for `caldoai`'s `prune-tests`;
+2026-11-09 for the mattpocock entries; the cloudflare, dzhng and ffmpeg sections date
+from 2026-10-01 unless noted.
 Re-verify before trusting any of it.
 
 ## Sources
@@ -17,7 +18,7 @@ Re-verify before trusting any of it.
 | **Untracked-vendored** | `react-doctor` npm package | 1 (`react-doctor`) | manual copy of `dist/skills/react-doctor`, see below |
 | **Untracked-vendored** | `dzhng/skills` | 2 (`ratchet-files`, `refactor-clean`) | manual copy, see below |
 | **Untracked-vendored** | `kajisho5/ffmpeg-skill` | 1 (`ffmpeg-skill`, v2.17.1) | manual copy of the runtime payload, see below |
-| Locked | `caldoai/skills` | 1 (`untangle-codebase`) | `npx skills update -g` |
+| Locked | `caldoai/skills` | 2 (`untangle-codebase`, `prune-tests`) | `npx skills update -g` |
 | Locked | `janestreet/agent_skills` | 1 (`socratic-tutor`) | `npx skills update -g` |
 | Local | — | ~25 | never auto-update |
 
@@ -149,23 +150,27 @@ No lock entry, so `npx skills update -g` never touches it. The package version
 moves with the CLI's releases; re-diff `SKILL.md` against the tarball before
 assuming a local copy is current.
 
-### caldoai/skills — untangle-codebase
+### caldoai/skills — untangle-codebase, prune-tests
 
-Added 2026-11-05 (Maze, one-skill repo, MIT). Locked, so `npx skills update -g`
-maintains it; the entry's `skillFolderHash` is the **upstream** tree SHA
-(`git rev-parse HEAD:skills/untangle-codebase`), not the hash of the installed
-copy. That is deliberate: it keeps `update` from firing and overwriting the local
-step-5 edit below while upstream is unchanged. When upstream does change, take the
-update and then re-apply:
+`untangle-codebase` added 2026-11-05; `prune-tests` added 2026-11-17 (both Maze,
+MIT — one `licenses/caldo-LICENSE` covers the source). Locked, so
+`npx skills update -g` maintains them; each entry's `skillFolderHash` is the
+**upstream** tree SHA (`git rev-parse HEAD:skills/<skill>`), not the hash of the
+installed copy. That is deliberate: it keeps `update` from firing and overwriting
+the local step-5 edit below while upstream is unchanged. When upstream does
+change, take the update and then re-apply:
 
-1. Step 5 ("Check, and repeat until done") is rewritten locally: every subagent runs in
-   the background, and a refactoring subagent must deslop/simplify its own changes and run
-   the project's own lint/test/build before reporting back. Upstream assumes foreground
-   subagents, which blocks the session — keep the local wording.
-2. Overlaps `improve-codebase-architecture` (deepening candidates), `refactor-clean`
-   (sediment) and `thermo-nuclear-code-quality-review` (structural review). It is the only
-   one that runs a whole-repo sweep to completion, so keep the distinction in mind rather
-   than letting the four converge.
+1. `untangle-codebase`, step 5 ("Check, and repeat until done") is rewritten locally: every
+   subagent runs in the background, and a refactoring subagent must deslop/simplify its own
+   changes and run the project's own lint/test/build before reporting back. Upstream assumes
+   foreground subagents, which blocks the session — keep the local wording.
+2. `untangle-codebase` overlaps `improve-codebase-architecture` (deepening candidates),
+   `refactor-clean` (sediment) and `thermo-nuclear-code-quality-review` (structural review).
+   It is the only one that runs a whole-repo sweep to completion, so keep the distinction in
+   mind rather than letting the four converge.
+3. `prune-tests` is vendored verbatim — no local edits, so an update needs no re-apply. It
+   is single-file and covers the test suite only: `tdd` writes tests, `prune-tests` deletes
+   the ones that guard no behavior, and `review-changes` still owns correctness review.
 
 ### kajisho5/ffmpeg-skill — copy the payload, not the repo
 
