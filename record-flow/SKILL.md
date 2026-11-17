@@ -8,7 +8,9 @@ description: >-
   "let me drive it", "save this session", "set up two browsers", "record and
   replay", or wants a repeatable test built from a manual pass. Not for an
   agent driving a flow itself (playwright-agent-flow) or for test-authoring
-  craft (playwright-automation).
+  craft (playwright-automation). For a repeated read-only lookup that an agent
+  should replay cheaply, use agent-browser saved flows instead
+  (references/saved-web-flows.md).
 ---
 
 # Record a flow
@@ -44,6 +46,29 @@ Replay any recording headlessly:
 ~/.agents/skills/record-flow/scripts/replay.sh <recording-dir>
 ```
 
+The first replay installs `@playwright/test` into the recording directory (a few
+seconds) and writes a `playwright.config.ts` there. The config uses the same
+system Chrome channel as codegen and loads the spec's matching `state-<id>.json`,
+so replay needs neither a Playwright browser download nor a manual storage line
+in the generated spec.
+
+## Two kinds of replay
+
+A Playwright spec is the right artifact when the task should *assert* something
+and fail CI. When the task is instead a repeated read-only lookup an agent
+should run cheaply, record it as an agent-browser saved flow and replay the
+request instead of the page:
+
+```bash
+agent-browser --capture flow open <url>   # do the task once
+agent-browser flow save <name> --param q=<value you typed>
+agent-browser flow run <name> --param q=<new value> --fields a,b
+```
+
+`references/saved-web-flows.md` covers when that fits, the replay tiers, and
+the auth and write caveats. Keep the two artifacts separate: a saved flow is
+not a test and does not replace the spec.
+
 ## What gets written
 
 ```
@@ -52,6 +77,9 @@ Replay any recording headlessly:
   flow-a.spec.ts, flow-b.spec.ts live-generated @playwright/test code
   codegen-a.log, codegen-b.log  process output
 ```
+
+Replay adds `package.json`, `playwright.config.ts` and `node_modules/` to the
+same directory on first use; they are not part of the recording.
 
 `state-*.json` is the valuable artifact: it lets a replay skip the login, which
 is usually the part that cannot be scripted.
