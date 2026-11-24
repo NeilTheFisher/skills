@@ -9,7 +9,7 @@ Re-verify before trusting any of it.
 
 | Tier | Source | Skills | Update command |
 |---|---|---|---|
-| Locked | `mattpocock/skills` | 9 (see below) | `npx skills update -g` |
+| Locked | `mattpocock/skills` | 10 (see below) | `npx skills update -g` |
 | Locked | `cursor/plugins` | `fix-merge-conflicts`, `thermo-nuclear-code-quality-review` | `npx skills update -g` |
 | Locked | `vercel-labs/agent-skills` | `web-design-guidelines` | `npx skills update -g` |
 | Locked | `Shawnchee/frontend-god-mode` | `frontend-god-mode` | `npx skills update -g` |
@@ -76,12 +76,12 @@ done
 Interesting uninstalled siblings in that repo: `audit-performance`, `audit-choices`,
 `audit-tests`, `code-review`, `review`, `write-spec`, `implement-spec`, `retro`.
 
-### mattpocock/skills — two more, locked by hand
+### mattpocock/skills — three more, locked by hand
 
 Added 2026-11-05 so `improve-codebase-architecture`, `tdd`, `triage` and
-`grill-with-docs` stop calling skills that were never installed. Both are
-byte-identical upstream copies, and both now have a `.skill-lock.json` entry, so
-`npx skills update -g` maintains them.
+`grill-with-docs` stop calling skills that were never installed; `retro` added
+2026-11-23. All are byte-identical upstream copies, and all have a
+`.skill-lock.json` entry, so `npx skills update -g` maintains them.
 
 The entries were written by hand because `npx skills add` is interactive-only (no
 `--skill` flag). `skillFolderHash` is **the upstream git tree SHA of the folder**,
@@ -91,10 +91,10 @@ i.e. `git rev-parse HEAD:<path>` in a clone, not a content hash and not
 ```bash
 git clone --depth 1 https://github.com/mattpocock/skills.git /tmp/mp-skills
 cd /tmp/mp-skills && git rev-parse HEAD:skills/engineering/codebase-design \
-  HEAD:skills/engineering/domain-modeling
+  HEAD:skills/engineering/domain-modeling HEAD:skills/engineering/retro
 ```
 
-To install on a fresh machine, copy the two folders into `~/.agents/skills` and
+To install on a fresh machine, copy the folders into `~/.agents/skills` and
 write entries of that shape. Sync afterwards with `npx skills update -g`.
 
 **Re-apply after every sync:** nothing. Check `codebase-design/DESIGN-IT-TWICE.md`
