@@ -18,6 +18,7 @@ Re-verify before trusting any of it.
 | **Untracked-vendored** | `react-doctor` npm package | 1 (`react-doctor`) | manual copy of `dist/skills/react-doctor`, see below |
 | **Untracked-vendored** | `dzhng/skills` | 2 (`ratchet-files`, `refactor-clean`) | manual copy, see below |
 | **Untracked-vendored** | `kajisho5/ffmpeg-skill` | 1 (`ffmpeg-skill`, v2.17.1) | manual copy of the runtime payload, see below |
+| **Untracked-vendored** | `EL4CTEO/shrink-anything` | 1 (`shrink-anything`) | manual copy of `skills/shrink-anything`, see below |
 | Locked | `caldoai/skills` | 2 (`untangle-codebase`, `prune-tests`) | `npx skills update -g` |
 | Locked | `janestreet/agent_skills` | 1 (`socratic-tutor`) | `npx skills update -g` |
 | Local | — | ~25 | never auto-update |
@@ -75,6 +76,26 @@ done
 
 Interesting uninstalled siblings in that repo: `audit-performance`, `audit-choices`,
 `audit-tests`, `code-review`, `review`, `write-spec`, `implement-spec`, `retro`.
+
+### EL4CTEO/shrink-anything — untracked, vendored 2026-11-23
+
+`shrink-anything` is the agent skill shipped alongside the CLI of the same name
+(Rust binary, npm `@el4cteo/shrink-anything`). It is the loop from the public
+announcement: scan for dead code, files, dependencies and assets; cut only what
+the project's own check still passes; put back the cut that broke it; hand the
+judgement calls (duplicates, public names) to the agent. No lock entry, so
+`npx skills update` never touches it. Sync:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/EL4CTEO/shrink-anything/main/skills/shrink-anything/SKILL.md \
+  -o ~/.agents/skills/shrink-anything/SKILL.md
+curl -fsSL https://raw.githubusercontent.com/EL4CTEO/shrink-anything/main/LICENSE \
+  -o ~/.agents/skills/licenses/shrink-anything-LICENSE
+```
+
+**Re-apply after every sync:** nothing, the file is byte-identical upstream. The
+skill only acts where the `shrink-anything` binary is installed (`scan`, `cut -- <check>`,
+`task`, `verify`, `undo`, `report`); without it the skill has nothing to drive.
 
 ### mattpocock/skills — three more, locked by hand
 
