@@ -1,0 +1,20 @@
+{
+  "asOf": "2026-11-13",
+  "plan": "OpenCode Go (not Go Plus)",
+  "source": "opencode.ai usage panel, Go column (blue bars)",
+  "note": "Requests per 5 hours on the Go plan. This is the real cost signal on a subscription; it is unrelated to the API list prices on Artificial Analysis. Re-snapshot when the plan changes.",
+  "models": {
+    "kimi-k3": { "requests5h": 110, "monthlyUsd": 15 },
+    "kimi-k3.1-pro": { "requests5h": 147, "monthlyUsd": 15 },
+    "deepseek-v4-pro": { "requests5h": 1050, "monthlyUsd": 15 },
+    "hy4": { "requests5h": 2710, "monthlyUsd": 60 },
+    "claude-haiku-5-5": { "requests5h": 3850, "monthlyUsd": 15 },
+    "minimax-m3.1-flash": { "requests5h": 3880, "monthlyUsd": 20 },
+    "gpt-6-luna": { "requests5h": 4230, "monthlyUsd": 15 },
+    "qwen3.7-plus": { "requests5h": 4300, "monthlyUsd": 60 },
+    "glm-5.3-flash": { "requests5h": 6320, "monthlyUsd": 60 },
+    "mimo-v2.6-flash": { "requests5h": 30100, "monthlyUsd": 60 },
+    "deepseek-v4.1-flash": { "requests5h": 43330, "monthlyUsd": 100 },
+    "muse-spark-1.3": { "requests5h": 45300, "monthlyUsd": 60 }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "beam": {
+    "aa": "Beam 1.0",
+    "note": "AA benchmarks the paid Beam 1.0; the free tier is the same model"
+  },
+  "iceman": {
+    "note": "no public benchmark coverage"
+  }
+}
