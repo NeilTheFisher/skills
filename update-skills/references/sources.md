@@ -237,6 +237,21 @@ and snaps their boundaries into the audio's pauses, so cue timing is close but w
 a cue are estimates — re-check any `--filler` cut. Orukeet's own words pass through when that
 backend is selected.
 
+## Modification state
+
+The tier table says where a skill came from; this says whether the installed copy is safe to
+re-copy. Keep it current when applying updates.
+
+| State | Skills | Re-copy rule |
+|---|---|---|
+| **VERBATIM** — byte-identical to upstream | chisle, chisle-audit, chisle-help, chisle-review, codebase-design, domain-modeling, fix-merge-conflicts, frontend-god-mode, grill-me, grill-with-docs, improve-codebase-architecture, prototype, prune-tests, retro, socratic-tutor, setup-matt-pocock-skills, tdd, thermo-nuclear-code-quality-review, triage, web-design-guidelines; animatic, setup-animatic, react-doctor, shrink-anything, agents-sdk, cloudflare-email-service, cloudflare-one, cloudflare-one-migrations, durable-objects, sandbox-stable, turnstile-spin, workers-best-practices, wrangler | safe: `rm -rf` + `cp -a`, then refresh the lock hash |
+| **LOCAL-EDIT** — re-apply the note after every sync | `chrome-devtools-axi` (`bunx` not `npx -y`); `untangle-codebase` (step-5 background subagents/deslop); `sandbox-next` + `sandbox-migrate-to-next` (per-topic `1-0-preview/*` routes); `web-perf` (`bunx chrome-devtools-axi`); `ratchet-files` (quoted `description:`); `unslop-ui` (invocation/allowed-tools + local refs); `cloudflare` (~29 `references/*` dirs, de-linked `nextjs-on-cloudflare`) | never take a full sync blindly |
+| **DESLOPPED / REWRITTEN** — started upstream, replaced locally | `deslop` (561-line local scanner vs the 22-line upstream stub) | never re-copy; `npx skills ls -g` must report `Source: local` |
+| **LOCAL** — hand-written, no upstream | the remaining 66 skills; the harness generates the catalog from their frontmatter | never auto-update |
+
+Known stale lock hashes, content identical and harmless: `grill-me`, `grill-with-docs`,
+`prototype`, `triage`. Refresh them the next time those folders actually change.
+
 ## Landmines
 
 ### deslop is local-only and MUST stay out of the lock file

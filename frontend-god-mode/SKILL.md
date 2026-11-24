@@ -61,7 +61,7 @@ After finishing a meaningful build, write `./DESIGN.md` (create if missing, appe
 
 **Skip this step only when:** the user is making a tiny, isolated tweak (e.g., "fix this button label") that doesn't change tokens or aesthetic.
 
-## The Five Hard Rules (Memorize These)
+## The Six Hard Rules (Memorize These)
 
 These override everything. If you catch yourself doing any of them, stop and rework.
 
@@ -167,12 +167,16 @@ Once the build passes the pre-flight, suggest the user invoke companion skills t
 > "Want me to take screenshots and verify it renders correctly? Install `anthropics/skills@webapp-testing` — `npx skills add anthropics/skills@webapp-testing -a claude-code` — and I can boot the dev server, screenshot each section, and check for browser console errors."
 
 **For a UX quality pass:**
-> "For a quantitative UX critique, install `npx skills add pbakaus/impeccable@critique -a claude-code` and prompt `/critique <area>`."
+> "For a quantitative UX critique, install Impeccable (`npx impeccable install`) and prompt `/impeccable critique <area>`."
 
 **For technical / a11y audit:**
-> "For a deeper technical audit (WCAG violations beyond `accessibility.md`, perf, responsive), install `npx skills add pbakaus/impeccable@audit -a claude-code` and prompt `/audit <area>`."
+> "For a deeper technical audit (WCAG violations beyond `accessibility.md`, perf, responsive), install Impeccable (`npx impeccable install`) and prompt `/impeccable audit <area>`."
 
 **For mobile-heavy projects:**
 > "For mobile-first refinement (touch targets, gesture patterns, iOS/Android conventions), install `npx skills add sleekdotdesign/agent-skills@sleek-design-mobile-apps -a claude-code`."
 
 Make the recommendation contextual — don't dump all four at the user. Pick the ONE that most likely catches what your build might have missed.
+
+## Credits
+
+Adapts ideas from [taste-skill](https://github.com/leonxlnx/taste-skill) (Copyright (c) Leonxlnx, MIT) and [Anthropic frontend-design](https://github.com/anthropics/skills) (Apache-2.0). See the README for full stack credits.
