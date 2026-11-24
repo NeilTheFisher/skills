@@ -1,8 +1,9 @@
 # Source inventory and landmines
 
-Verified 2026-11-13 for the animatic pair; 2026-11-17 for `caldoai`'s `prune-tests`;
-2026-11-09 for the mattpocock entries; the cloudflare, dzhng and ffmpeg sections date
-from 2026-10-01 unless noted.
+Verified 2026-11-24 for the dzhng `skills/review/` move, the `unslop-ui` 1.0.1 merge and
+`bro-skill`; 2026-11-13 for the animatic pair; 2026-11-17 for `caldoai`'s `prune-tests`;
+2026-11-09 for the mattpocock entries; the cloudflare and ffmpeg sections date from
+2026-10-01 unless noted.
 Re-verify before trusting any of it.
 
 ## Sources
@@ -16,9 +17,10 @@ Re-verify before trusting any of it.
 | **Untracked-vendored** | `cloudflare/skills` | 13 | manual copy, see below |
 | **Untracked-vendored** | `mattpocock/skills` branch `animatic-skill` | 2 (`animatic`, `setup-animatic`) | manual copy from the branch, see below |
 | **Untracked-vendored** | `react-doctor` npm package | 1 (`react-doctor`) | manual copy of `dist/skills/react-doctor`, see below |
-| **Untracked-vendored** | `dzhng/skills` | 2 (`ratchet-files`, `refactor-clean`) | manual copy, see below |
+| **Untracked-vendored** | `dzhng/skills` | 4 (`ratchet-files`, `refactor-change`, `find-state-machines`, `find-overengineering`) | manual copy, see below |
 | **Untracked-vendored** | `kajisho5/ffmpeg-skill` | 1 (`ffmpeg-skill`, v2.17.1) | manual copy of the runtime payload, see below |
 | **Untracked-vendored** | `EL4CTEO/shrink-anything` | 1 (`shrink-anything`) | manual copy of `skills/shrink-anything`, see below |
+| **Untracked-vendored** | `luchasarie/bro-skill` | 1 (`bro-skill`, frontmatter name `bro`) | manual copy; the folder keeps the upstream repo name |
 | Locked | `caldoai/skills` | 2 (`untangle-codebase`, `prune-tests`) | `npx skills update -g` |
 | Locked | `janestreet/agent_skills` | 1 (`socratic-tutor`) | `npx skills update -g` |
 | Local | — | ~25 | never auto-update |
@@ -53,29 +55,38 @@ done
 Upstream ships 3 uninstalled skills: `basin` (R2 Iceberg rebrand of pipelines /
 r2-data-catalog / r2-sql), `k2`, `nextjs-on-cloudflare`.
 
-### dzhng/skills — untracked, two skills so far
+### dzhng/skills — untracked, four skills
 
-`ratchet-files` (upstream `skills/engineering/ratchet-files`) and
-`refactor-clean` (upstream `skills/engineering/refactor-clean`), added 2026-10-19.
-No lock entry, so `npx skills update` never touches them. Sync:
+`ratchet-files` and `refactor-change` (the 2026-11 rename of `refactor-clean`) live under
+upstream `skills/review/`; `find-state-machines` and `find-overengineering` are their two
+single-file dependencies. No lock entries, so `npx skills update` never touches them. Sync:
 
 ```bash
 git clone --depth 1 https://github.com/dzhng/skills.git /tmp/dzhng-skills
-for s in ratchet-files refactor-clean; do
+for s in ratchet-files refactor-change find-state-machines find-overengineering; do
   rm -rf ~/.agents/skills/"$s"
-  cp -a "/tmp/dzhng-skills/skills/engineering/$s" ~/.agents/skills/"$s"
+  cp -a "/tmp/dzhng-skills/skills/review/$s" ~/.agents/skills/"$s"
 done
 ```
 
-**Re-apply after every sync:**
+**Re-apply after every sync:** nothing. Upstream now writes `ratchet-files`' description
+as a `>-` block scalar, so the old unquoted-colon YAML break is fixed, and it links
+`../refactor-change/SKILL.md`, which the loop installs. Keep `find-state-machines` and
+`find-overengineering` installed: `refactor-change` links both.
 
-1. `ratchet-files/SKILL.md` frontmatter `description:` has colons and is unquoted
-   upstream, which makes YAML parsers skip the skill. Wrap it in double quotes.
-2. `ratchet-files/SKILL.md` links `../refactor-clean/SKILL.md`. Keep both skills
-   installed together, or de-link it when dropping `refactor-clean`.
+`refactor-codebase` is a separate new upstream skill (a whole-codebase sweep, user-invoked
+via `disable-model-invocation: true`). It additionally needs `code-review`, `audit-tests`
+and `review`, none of which are installed; do not add it without them or its links dangle.
 
-Interesting uninstalled siblings in that repo: `audit-performance`, `audit-choices`,
-`audit-tests`, `code-review`, `review`, `write-spec`, `implement-spec`, `retro`.
+Interesting uninstalled siblings: `audit-performance`, `audit-choices`, `audit-tests`,
+`code-review`, `review`, `write-spec`, `implement-spec`, `retro`, `refactor-codebase`, `eli5`.
+
+### luchasarie/bro-skill — untracked, folder name differs from skill name
+
+Vendored from `luchasarie/bro-skill`. The folder deliberately keeps the upstream repo name
+(`bro-skill`) while frontmatter says `name: bro`, so the command stays `/bro`;
+`install.sh` and the README use the `bro-skill` paths. The directory/name mismatch is an
+accepted exception to the usual rule, not a stale rename. No lock entry.
 
 ### EL4CTEO/shrink-anything — untracked, vendored 2026-11-23
 
@@ -244,13 +255,13 @@ re-copy. Keep it current when applying updates.
 
 | State | Skills | Re-copy rule |
 |---|---|---|
-| **VERBATIM** — byte-identical to upstream | chisle, chisle-audit, chisle-help, chisle-review, codebase-design, domain-modeling, fix-merge-conflicts, frontend-god-mode, grill-me, grill-with-docs, improve-codebase-architecture, prototype, prune-tests, retro, socratic-tutor, setup-matt-pocock-skills, tdd, thermo-nuclear-code-quality-review, triage, web-design-guidelines; animatic, setup-animatic, react-doctor, shrink-anything, agents-sdk, cloudflare-email-service, cloudflare-one, cloudflare-one-migrations, durable-objects, sandbox-stable, turnstile-spin, workers-best-practices, wrangler | safe: `rm -rf` + `cp -a`, then refresh the lock hash |
-| **LOCAL-EDIT** — re-apply the note after every sync | `chrome-devtools-axi` (`bunx` not `npx -y`); `untangle-codebase` (step-5 background subagents/deslop); `sandbox-next` + `sandbox-migrate-to-next` (per-topic `1-0-preview/*` routes); `web-perf` (`bunx chrome-devtools-axi`); `ratchet-files` (quoted `description:`); `unslop-ui` (invocation/allowed-tools + local refs); `cloudflare` (~29 `references/*` dirs, de-linked `nextjs-on-cloudflare`) | never take a full sync blindly |
+| **VERBATIM** — byte-identical to upstream | chisle, chisle-audit, chisle-help, chisle-review, codebase-design, domain-modeling, fix-merge-conflicts, frontend-god-mode, grill-me, grill-with-docs, improve-codebase-architecture, prototype, prune-tests, retro, socratic-tutor, setup-matt-pocock-skills, tdd, thermo-nuclear-code-quality-review, triage, web-design-guidelines; animatic, setup-animatic, react-doctor, shrink-anything, agents-sdk, cloudflare-email-service, cloudflare-one, cloudflare-one-migrations, durable-objects, sandbox-stable, turnstile-spin, workers-best-practices, wrangler; ratchet-files, refactor-change, find-state-machines, find-overengineering | safe: `rm -rf` + `cp -a`, then refresh the lock hash |
+| **LOCAL-EDIT** — re-apply the note after every sync | `chrome-devtools-axi` (`bunx` not `npx -y`); `untangle-codebase` (step-5 background subagents/deslop); `sandbox-next` + `sandbox-migrate-to-next` (per-topic `1-0-preview/*` routes); `web-perf` (`bunx chrome-devtools-axi` preference merged into the MCP workflow); `unslop-ui` (user-invoked flags, `scripts/`, `tokens.md`/`unslop-fallback.md`); `cloudflare` (~29 `references/*` dirs, de-linked `nextjs-on-cloudflare`) | never take a full sync blindly |
 | **DESLOPPED / REWRITTEN** — started upstream, replaced locally | `deslop` (561-line local scanner vs the 22-line upstream stub) | never re-copy; `npx skills ls -g` must report `Source: local` |
-| **LOCAL** — hand-written, no upstream | the remaining 66 skills; the harness generates the catalog from their frontmatter | never auto-update |
+| **LOCAL** — hand-written, no upstream | the remaining hand-written skills; the harness generates the catalog from their frontmatter | never auto-update |
 
-Known stale lock hashes, content identical and harmless: `grill-me`, `grill-with-docs`,
-`prototype`, `triage`. Refresh them the next time those folders actually change.
+Lock hashes refreshed 2026-11-24 for `grill-me`, `grill-with-docs`, `prototype` and
+`triage`; their content was already identical to upstream.
 
 ## Landmines
 

@@ -7,7 +7,7 @@ description: Migrate Cloudflare Sandbox apps from stable @cloudflare/sandbox to 
 
 **Perform** the port. Follow the steps in order. Depth lives in docs—fetch the linked page when a step needs detail.
 
-Human guide: [Migrate](https://developers.cloudflare.com/sandbox/sdk/migrate/index.md) · [1.0 preview](https://developers.cloudflare.com/sandbox/1-0-preview/index.md)
+Human guide: [Migrate](https://developers.cloudflare.com/sandbox/sdk/migrate/index.md) · [1.0 preview](https://developers.cloudflare.com/sandbox/index.md)
 
 **New projects** should start on `@next` (**`sandbox-next`**), not this skill. **Day-to-day stable work** → **`sandbox-stable`**. Deprecated-API cleanup **without** moving to `@next` → [2026 deprecation guide](https://developers.cloudflare.com/sandbox/sdk/migrate/index.md) first if needed.
 
@@ -183,3 +183,7 @@ Then day-to-day work uses **`sandbox-next`**.
 - Keeping pre-cutover process/terminal IDs after deploy  
 - Forcing production cutover without user agreement  
 - Putting live secrets in `setEnvVars` / launch `env`  
+
+## Skill feedback
+
+If the user reports that this skill gave incorrect or outdated guidance, or is missing information, read [references/skill-feedback.md](references/skill-feedback.md).
