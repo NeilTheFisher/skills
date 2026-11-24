@@ -1,5 +1,5 @@
 ---
-name: mistakes-to-checks
+name: agent-mistake-audit
 description: "Turn a coding agent's repeat mistakes into types, lint rules, tests and CI checks instead of more lines in CLAUDE.md or AGENTS.md. Use when asked what the agent keeps getting wrong, to audit agent-authored PRs, reverts and review comments, to shrink a bloated rules file, or for a quarterly rules cleanup. Also when a rule has been added to CLAUDE.md twice for the same mistake."
 ---
 
