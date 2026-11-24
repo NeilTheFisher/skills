@@ -126,10 +126,51 @@ function findChrome() {
 // Chrome with --remote-debugging-port=0 writes the chosen port to
 // <user-data-dir>/DevToolsActivePort. Reading it avoids Windows' excluded
 // port ranges (Hyper-V) that can silently stop Chrome binding a chosen port.
-async function waitForActivePort(profileWsl, timeoutMs = 15000) {
+// Chrome writes these into the profile dir. A reused named profile can carry a
+// stale DevToolsActivePort and a stale singleton lock from the previous run;
+// clearing them is what stops "opens and closes immediately, then no CDP".
+const PROFILE_STATE_FILES = [
+  'DevToolsActivePort',
+  'SingletonLock',
+  'SingletonCookie',
+  'SingletonSocket',
+];
+
+function clearProfileState(profileWsl) {
+  for (const f of PROFILE_STATE_FILES) {
+    try {
+      fs.rmSync(path.join(profileWsl, f), { force: true, recursive: true });
+    } catch {}
+  }
+}
+
+// A named profile whose Chrome is still alive must be reused, never spawned
+// again: Windows hands the second launch to the first process and the new one
+// exits without opening a debug port.
+async function livePortForProfile(profileWsl) {
+  try {
+    const raw = fs.readFileSync(path.join(profileWsl, 'DevToolsActivePort'), 'utf8');
+    const port = Number(raw.split(/\r?\n/)[0].trim());
+    if (!(port > 0)) return null;
+    const r = await fetch(`http://127.0.0.1:${port}/json/version`, {
+      signal: AbortSignal.timeout(1500),
+    });
+    return r.ok ? port : null;
+  } catch {
+    return null;
+  }
+}
+
+async function waitForActivePort(profileWsl, timeoutMs = 15000, exited = null) {
   const file = path.join(profileWsl, 'DevToolsActivePort');
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
+    const gone = exited?.();
+    if (gone) {
+      throw new Error(
+        `Chrome exited before exposing CDP (code ${gone.code ?? 'n/a'}${gone.signal ? `, signal ${gone.signal}` : ''})`,
+      );
+    }
     try {
       const port = Number(fs.readFileSync(file, 'utf8').split(/\r?\n/)[0].trim());
       if (port > 0) return port;
@@ -139,10 +180,16 @@ async function waitForActivePort(profileWsl, timeoutMs = 15000) {
   throw new Error(`Chrome did not write DevToolsActivePort in ${profileWsl}`);
 }
 
-async function waitForCdp(port, timeoutMs = 15000) {
+async function waitForCdp(port, timeoutMs = 15000, exited = null) {
   const deadline = Date.now() + timeoutMs;
   let lastErr;
   while (Date.now() < deadline) {
+    const gone = exited?.();
+    if (gone) {
+      throw new Error(
+        `Chrome exited before CDP answered on 127.0.0.1:${port} (code ${gone.code ?? 'n/a'}${gone.signal ? `, signal ${gone.signal}` : ''})`,
+      );
+    }
     try {
       const r = await fetch(`http://127.0.0.1:${port}/json/version`);
       if (r.ok) return await r.json();
@@ -164,28 +211,78 @@ export async function launch(opts = {}) {
   const tempWin = windowsTemp();
   const profileName =
     opts.profile || `pw-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const profileWin = path.win32.join(tempWin, profileName);
-  const profileWsl = toWsl(profileWin);
+  let profileWin = path.win32.join(tempWin, profileName);
+  let profileWsl = toWsl(profileWin);
+  let usedFallbackProfile = false;
   fs.mkdirSync(profileWsl, { recursive: true });
 
   const requestedPort = opts.port || 0;
-  const args = [
-    `--remote-debugging-port=${requestedPort}`,
-    `--user-data-dir=${profileWin}`,
-    '--no-first-run',
-    '--no-default-browser-check',
-    '--disable-features=Translate,MediaRouter',
-    '--disable-background-networking',
-  ];
-  if (opts.headless) args.push('--headless=new');
-  if (opts.args) args.push(...opts.args);
-  args.push('about:blank');
+  const buildArgs = () => {
+    const a = [
+      `--remote-debugging-port=${requestedPort}`,
+      `--user-data-dir=${profileWin}`,
+      '--no-first-run',
+      '--no-default-browser-check',
+      '--disable-features=Translate,MediaRouter',
+      '--disable-background-networking',
+    ];
+    if (opts.headless) a.push('--headless=new');
+    if (opts.args) a.push(...opts.args);
+    a.push('about:blank');
+    return a;
+  };
 
-  const child = spawn(chrome, args, { detached: true, stdio: 'ignore' });
-  child.unref();
+  const startChrome = async () => {
+    // Only clear state here: a live instance was already detected/reused above.
+    clearProfileState(profileWsl);
+    const child = spawn(chrome, buildArgs(), { detached: true, stdio: 'ignore' });
+    child.unref();
+    let exited = null;
+    child.once('exit', (code, signal) => (exited = { code, signal }));
+    child.once('error', (e) => (exited = { code: null, signal: null, error: e.message }));
+    const port = requestedPort || (await waitForActivePort(profileWsl, 20000, () => exited));
+    await waitForCdp(port, 20000, () => exited);
+    return port;
+  };
 
-  const port = requestedPort || (await waitForActivePort(profileWsl));
-  await waitForCdp(port);
+  let port;
+  if (opts.profile && opts.reuseExisting !== true) {
+    // A named profile is for persisted state, not a shared process. Kill any
+    // instance using this exact profile dir first: Chrome's single-instance
+    // handoff makes a second launch exit immediately, and a stale
+    // DevToolsActivePort can point at a port now owned by an unrelated process.
+    await closeProfile(profileWin);
+    await sleep(300);
+    clearProfileState(profileWsl);
+  }
+  const reused = opts.profile && opts.reuseExisting === true ? await livePortForProfile(profileWsl) : null;
+  if (reused) {
+    port = reused;
+  } else {
+    try {
+      port = await startChrome();
+    } catch (e) {
+      if (!opts.profile || opts.retryOnFailure === false) throw e;
+      // Single-instance handoff or a locked profile: clear it and try once more,
+      // then fall back to a fresh profile so a stuck lock never blocks the caller.
+      console.error(`[win-chrome] launch failed for "${profileName}": ${e.message}; retrying`);
+      await closeProfile(profileWin);
+      await sleep(1000);
+      clearProfileState(profileWsl);
+      try {
+        port = await startChrome();
+      } catch (e2) {
+        console.error(`[win-chrome] retry failed, using a fresh profile: ${e2.message}`);
+        const fresh = `${profileName}-${Date.now().toString(36)}`;
+        profileWin = path.win32.join(tempWin, fresh);
+        profileWsl = toWsl(profileWin);
+        usedFallbackProfile = true;
+        fs.mkdirSync(profileWsl, { recursive: true });
+        port = await startChrome();
+      }
+    }
+  }
+
   const browser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
   const context = opts.context || browser.contexts()[0];
   if (!context) throw new Error('connectOverCDP returned no browser context');
@@ -196,7 +293,7 @@ export async function launch(opts = {}) {
     await page.goto(opts.url, { waitUntil: 'domcontentloaded' }).catch(() => {});
   }
 
-  const ephemeral = !opts.profile;
+  const ephemeral = !opts.profile || usedFallbackProfile;
   const autoClean = ephemeral && opts.autoClean !== false && opts.keepProfile !== true;
   if (ephemeral && opts.keepProfile !== true && opts.watch !== false) {
     spawnWatcher(port, profileWsl);
@@ -225,7 +322,7 @@ export async function launch(opts = {}) {
     try {
       await browser.close();
     } catch {}
-    closeProfile(profileWin);
+    await closeProfile(profileWin);
     if (autoClean) await removeProfileDirWhenFree(profileWsl);
   }
 
@@ -243,7 +340,23 @@ export async function launch(opts = {}) {
   };
 }
 
-export function closeProfile(profileWin) {
+export async function closeProfile(profileWin) {
+  // Force-killing Chrome skips its cookie/session flush, so a named profile
+  // "forgets" logins. Ask it to close over CDP first and only then force-kill.
+  try {
+    const active = fs.readFileSync(path.join(toWsl(profileWin), 'DevToolsActivePort'), 'utf8');
+    const port = Number(active.split(/\r?\n/)[0]);
+    if (port > 0) {
+      await closeViaCdp(port);
+      for (let i = 0; i < 15; i++) {
+        try {
+          const r = await fetch(`http://127.0.0.1:${port}/json/version`, { signal: AbortSignal.timeout(500) });
+          if (!r.ok) break;
+        } catch { break; }
+        await sleep(200);
+      }
+    }
+  } catch {}
   const needle = String(profileWin).replace(/'/g, "''");
   try {
     execFileSync(
@@ -405,7 +518,7 @@ async function main() {
     const target = /[\\/]/.test(prof) || /^[A-Za-z]:/.test(prof)
       ? prof
       : path.win32.join(windowsTemp(), prof);
-    closeProfile(target);
+    await closeProfile(target);
     if (!flags.keepProfile) await removeProfileDirWhenFree(toWsl(target));
     return;
   }
